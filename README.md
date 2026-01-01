@@ -1,2 +1,2 @@
-# joshi
-Joshi's repo
+# Joshi's Repo
+Joshi's repo für mein Schulpraktikum bei valantic.
