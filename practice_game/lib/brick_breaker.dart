@@ -15,13 +15,15 @@ import 'package:practice_game/score_display.dart';
 
 class BrickBreaker extends FlameGame
     with HasCollisionDetection, KeyboardEvents, TapCallbacks {
-  BrickBreaker()
+  BrickBreaker({required this.onGameOver})
     : super(
         camera: CameraComponent.withFixedResolution(
           width: gameWidth,
           height: gameHeight,
         ),
       );
+
+  final VoidCallback onGameOver;
 
   final rand = math.Random();
   double get width => size.x;
@@ -35,6 +37,7 @@ class BrickBreaker extends FlameGame
     if (newScore > 0) {
       HighscoreManager.addScore(newScore);
     }
+    onGameOver();
   }
 
   void incScore() {

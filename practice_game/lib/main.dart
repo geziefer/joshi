@@ -22,13 +22,20 @@ class GameApp extends StatefulWidget {
 }
 
 class _GameAppState extends State<GameApp> {
-  late final BrickBreaker game;
+  late BrickBreaker game;
   bool _gameStarted = false;
 
   @override
   void initState() {
     super.initState();
-    game = BrickBreaker();
+    game = BrickBreaker(onGameOver: _onGameOver);
+  }
+
+  void _onGameOver() {
+    setState(() {
+      _gameStarted = false;
+      game = BrickBreaker(onGameOver: _onGameOver);
+    });
   }
 
   @override
