@@ -34,6 +34,7 @@ class _GameAppState extends State<GameApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
+        appBar: AppBar(title: Text('Practice Game')),
         body: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
