@@ -34,10 +34,6 @@ class BrickBreaker extends FlameGame
 
   void setScore(int newScore) {
     _score = newScore;
-    if (newScore > 0) {
-      HighscoreManager.addScore(newScore);
-    }
-    onGameOver();
   }
 
   void incScore() {

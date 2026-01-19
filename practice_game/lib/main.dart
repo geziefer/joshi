@@ -34,7 +34,11 @@ class _GameAppState extends State<GameApp> {
   void _onGameOver() {
     setState(() {
       _gameStarted = false;
-      game = BrickBreaker(onGameOver: _onGameOver);
+    });
+    Future.delayed(const Duration(milliseconds: 100), () {
+      setState(() {
+        game = BrickBreaker(onGameOver: _onGameOver);
+      });
     });
   }
 

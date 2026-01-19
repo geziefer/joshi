@@ -5,6 +5,7 @@ import 'package:practice_game/brick_breaker.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
+import 'package:practice_game/highscore_manager.dart';
 import 'package:practice_game/paddle.dart';
 import 'package:practice_game/play_area.dart';
 
@@ -47,15 +48,15 @@ class Ball extends CircleComponent
       } else if (intersectionPoints.first.x >= game.width) {
         velocity.x = -velocity.x;
       } else if (intersectionPoints.first.y >= game.height) {
-        // TODO hier game over definieren und Zähler wieviele Bälle
-
+        final currentScore = game.score;
         add(
           RemoveEffect(
             delay: 0.35,
             onComplete: () {
-              game.setScore(0);
-
-              game.startGame();
+              if (currentScore > 0) {
+                HighscoreManager.addScore(currentScore);
+              }
+              game.onGameOver();
             },
           ),
         );
