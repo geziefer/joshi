@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:practice_game/ball.dart';
 import 'package:practice_game/brick.dart';
+import 'package:practice_game/highscore_manager.dart';
 import 'package:practice_game/main.dart';
 import 'package:practice_game/paddle.dart';
 import 'package:practice_game/play_area.dart';
@@ -31,6 +32,9 @@ class BrickBreaker extends FlameGame
 
   void setScore(int newScore) {
     _score = newScore;
+    if (newScore > 0) {
+      HighscoreManager.addScore(newScore);
+    }
   }
 
   void incScore() {

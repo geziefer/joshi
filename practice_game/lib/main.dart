@@ -8,6 +8,7 @@ library;
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:practice_game/brick_breaker.dart';
+import 'package:practice_game/start_screen.dart';
 
 void main() {
   runApp(const GameApp());
@@ -22,6 +23,7 @@ class GameApp extends StatefulWidget {
 
 class _GameAppState extends State<GameApp> {
   late final BrickBreaker game;
+  bool _gameStarted = false;
 
   @override
   void initState() {
@@ -34,30 +36,37 @@ class _GameAppState extends State<GameApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar: AppBar(title: Text('Practice Game')),
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xffa9d6e5), Color(0xfff2e8cf)],
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Center(
-                child: FittedBox(
-                  child: SizedBox(
-                    width: gameWidth,
-                    height: gameHeight,
-                    child: GameWidget(game: game),
+        body: _gameStarted
+            ? Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xffa9d6e5), Color(0xfff2e8cf)],
                   ),
                 ),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Center(
+                      child: FittedBox(
+                        child: SizedBox(
+                          width: gameWidth,
+                          height: gameHeight,
+                          child: GameWidget(game: game),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            : StartScreen(
+                onStart: () {
+                  setState(() {
+                    _gameStarted = true;
+                  });
+                },
               ),
-            ),
-          ),
-        ),
       ),
     );
   }
