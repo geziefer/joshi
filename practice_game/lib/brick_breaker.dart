@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:practice_game/ball.dart';
 import 'package:practice_game/brick.dart';
-import 'package:practice_game/highscore_manager.dart';
+import 'package:practice_game/lives_display.dart';
 import 'package:practice_game/main.dart';
 import 'package:practice_game/paddle.dart';
 import 'package:practice_game/play_area.dart';
@@ -32,6 +32,33 @@ class BrickBreaker extends FlameGame
   int _score = 0;
   int get score => _score;
 
+  int _lives = 3;
+  int get lives => _lives;
+
+  void loseLife() {
+    _lives--;
+    if (_lives <= 0) {
+      onGameOver();
+    } else {
+      respawnBall();
+    }
+  }
+
+  void respawnBall() {
+    world.removeAll(world.children.query<Ball>());
+    world.add(
+      Ball(
+        difficultyModifier: difficultyModifier,
+        radius: ballRadius,
+        position: size / 2,
+        velocity: Vector2(
+          (rand.nextDouble() - 0.5) * width,
+          height * 0.3,
+        ).normalized()..scale(height / 4),
+      ),
+    );
+  }
+
   void setScore(int newScore) {
     _score = newScore;
   }
@@ -46,6 +73,7 @@ class BrickBreaker extends FlameGame
     camera.viewfinder.anchor = Anchor.topLeft;
     world.add(PlayArea());
     world.add(ScoreDisplay());
+    world.add(LivesDisplay());
     startGame();
   }
 

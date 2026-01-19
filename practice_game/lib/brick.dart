@@ -27,7 +27,6 @@ class Brick extends RectangleComponent
     removeFromParent();
 
     game.incScore();
-    print("Treffer ${game.score}");
 
     if (game.world.children.query<Brick>().length == 1) {
       game.startGame();

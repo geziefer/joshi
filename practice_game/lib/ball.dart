@@ -53,10 +53,12 @@ class Ball extends CircleComponent
           RemoveEffect(
             delay: 0.35,
             onComplete: () {
-              if (currentScore > 0) {
-                HighscoreManager.addScore(currentScore);
+              if (game.lives <= 1) {
+                if (currentScore > 0) {
+                  HighscoreManager.addScore(currentScore);
+                }
               }
-              game.onGameOver();
+              game.loseLife();
             },
           ),
         );
