@@ -53,6 +53,8 @@ class Ball extends CircleComponent
           RemoveEffect(
             delay: 0.35,
             onComplete: () {
+              game.setScore(0);
+
               game.startGame();
             },
           ),

@@ -10,6 +10,7 @@ import 'package:practice_game/brick.dart';
 import 'package:practice_game/main.dart';
 import 'package:practice_game/paddle.dart';
 import 'package:practice_game/play_area.dart';
+import 'package:practice_game/score_display.dart';
 
 class BrickBreaker extends FlameGame
     with HasCollisionDetection, KeyboardEvents, TapCallbacks {
@@ -25,11 +26,23 @@ class BrickBreaker extends FlameGame
   double get width => size.x;
   double get height => size.y;
 
+  int _score = 0;
+  int get score => _score;
+
+  void setScore(int newScore) {
+    _score = newScore;
+  }
+
+  void incScore() {
+    _score++;
+  }
+
   @override
   void onLoad() {
     super.onLoad();
     camera.viewfinder.anchor = Anchor.topLeft;
     world.add(PlayArea());
+    world.add(ScoreDisplay());
     startGame();
   }
 
