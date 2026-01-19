@@ -1,9 +1,12 @@
 import 'dart:ui';
 
-import 'package:practice_game/main.dart';
+import 'package:practice_game/brick.dart';
+import 'package:practice_game/brick_breaker.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
+import 'package:practice_game/paddle.dart';
+import 'package:practice_game/play_area.dart';
 
 class Ball extends CircleComponent
     with CollisionCallbacks, HasGameReference<BrickBreaker> {
@@ -44,6 +47,8 @@ class Ball extends CircleComponent
       } else if (intersectionPoints.first.x >= game.width) {
         velocity.x = -velocity.x;
       } else if (intersectionPoints.first.y >= game.height) {
+        // TODO hier game over definieren und Zähler wieviele Bälle
+
         add(
           RemoveEffect(
             delay: 0.35,
