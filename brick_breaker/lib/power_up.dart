@@ -7,14 +7,14 @@ import 'package:practice_game/brick_breaker.dart';
 class PowerUp extends CircleComponent
     with CollisionCallbacks, HasGameReference<BrickBreaker> {
   PowerUp({required super.position})
-      : super(
-          radius: 20,
-          anchor: Anchor.center,
-          paint: Paint()
-            ..color = const Color(0xfff9c74f)
-            ..style = PaintingStyle.fill,
-          children: [CircleHitbox()],
-        );
+    : super(
+        radius: 40,
+        anchor: Anchor.center,
+        paint: Paint()
+          ..color = const Color(0xfff9c74f)
+          ..style = PaintingStyle.fill,
+        children: [CircleHitbox()],
+      );
 
   double _lifeTime = 0;
   bool _collected = false;
