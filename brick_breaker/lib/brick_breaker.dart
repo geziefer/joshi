@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:practice_game/ball.dart';
 import 'package:practice_game/brick.dart';
+import 'package:practice_game/level_display.dart';
 import 'package:practice_game/lives_display.dart';
 import 'package:practice_game/main.dart';
 import 'package:practice_game/paddle.dart';
@@ -41,6 +42,9 @@ class BrickBreaker extends FlameGame
   Ball? _mainBall;
   int _activeBonusBalls = 0;
 
+  int _level = 1;
+  int get level => _level;
+
   void loseLife() {
     _lives--;
     if (_lives <= 0) {
@@ -60,7 +64,7 @@ class BrickBreaker extends FlameGame
         velocity: Vector2(
           (rand.nextDouble() - 0.5) * width,
           height * 0.3,
-        ).normalized()..scale(height / 4),
+        ).normalized()..scale(height / 3),
       ),
     );
   }
@@ -116,7 +120,7 @@ class BrickBreaker extends FlameGame
           velocity: Vector2(
             (rand.nextDouble() - 0.5) * width,
             height * 0.3,
-          ).normalized()..scale(height / 4),
+          ).normalized()..scale(height / 3),
         ),
       );
       _mainBall = null;
@@ -130,6 +134,7 @@ class BrickBreaker extends FlameGame
     world.add(PlayArea());
     world.add(ScoreDisplay());
     world.add(LivesDisplay());
+    world.add(LevelDisplay());
     startGame();
   }
 
@@ -153,7 +158,7 @@ class BrickBreaker extends FlameGame
         velocity: Vector2(
           (rand.nextDouble() - 0.5) * width,
           height * 0.3,
-        ).normalized()..scale(height / 4),
+        ).normalized()..scale(height / 3),
       ),
     );
 
@@ -165,6 +170,7 @@ class BrickBreaker extends FlameGame
       ),
     );
 
+    final levelColor = brickColors[(_level - 1) % brickColors.length];
     world.addAll([
       for (var i = 0; i < brickColors.length; i++)
         for (var j = 1; j <= 5; j++)
@@ -173,7 +179,7 @@ class BrickBreaker extends FlameGame
               (i + 0.5) * brickWidth + (i + 1) * brickGutter,
               (j + 2.0) * brickHeight + j * brickGutter,
             ),
-            brickColors[i],
+            levelColor,
           ),
     ]);
   }
@@ -196,6 +202,11 @@ class BrickBreaker extends FlameGame
         startGame();
     }
     return KeyEventResult.handled;
+  }
+
+  void nextLevel() {
+    _level++;
+    startGame();
   }
 
   @override

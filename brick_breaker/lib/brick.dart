@@ -29,7 +29,7 @@ class Brick extends RectangleComponent
     game.incScore();
 
     if (game.world.children.query<Brick>().length == 1) {
-      game.startGame();
+      game.nextLevel();
     }
   }
 }
