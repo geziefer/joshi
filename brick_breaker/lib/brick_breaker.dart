@@ -42,8 +42,16 @@ class BrickBreaker extends FlameGame
   Ball? _mainBall;
   int _activeBonusBalls = 0;
 
-  int _level = 1;
+  int _level = 2;
   int get level => _level;
+
+  double getInitialBallSpeed() {
+    return height / (4 - (_level * 0.15));
+  }
+
+  double getPreviousLevelSpeed() {
+    return height / (4 - ((_level - 1) * 0.15));
+  }
 
   void loseLife() {
     _lives--;
@@ -64,7 +72,7 @@ class BrickBreaker extends FlameGame
         velocity: Vector2(
           (rand.nextDouble() - 0.5) * width,
           height * 0.3,
-        ).normalized()..scale(height / 3),
+        ).normalized()..scale(getInitialBallSpeed()),
       ),
     );
   }
@@ -79,10 +87,24 @@ class BrickBreaker extends FlameGame
 
   void onBrickDestroyed(Vector2 brickPosition) {
     _bricksDestroyed++;
+
+    // Ball beschleunigen bei Brick-Zerstörung (ab Level 2)
+    if (_level >= 2) {
+      final balls = world.children.query<Ball>();
+      for (final ball in balls) {
+        if (!ball.isBonus) {
+          final levelModifier = 1.0 + (_level * 0.02); // 2% pro Level
+          ball.velocity.setFrom(ball.velocity * levelModifier);
+        }
+      }
+    }
+
     if (_bricksDestroyed >= _bricksUntilPowerUp) {
-      _bricksDestroyed = 0;
-      _bricksUntilPowerUp = rand.nextInt(6) + 5;
-      world.add(PowerUp(position: size / 2));
+      if (world.children.query<PowerUp>().isEmpty) {
+        _bricksDestroyed = 0;
+        _bricksUntilPowerUp = rand.nextInt(6) + 5;
+        world.add(PowerUp(position: size / 2));
+      }
     }
   }
 
@@ -93,19 +115,26 @@ class BrickBreaker extends FlameGame
     }
 
     _activeBonusBalls = 3;
+    final bonusSpeed = _level > 1
+        ? getPreviousLevelSpeed()
+        : getInitialBallSpeed();
     for (var i = 0; i < 3; i++) {
-      world.add(
-        Ball(
-          isBonus: true,
-          difficultyModifier: difficultyModifier,
-          radius: ballRadius,
-          position: size / 2,
-          velocity: Vector2(
-            (rand.nextDouble() - 0.5) * width,
-            height * 0.3,
-          ).normalized()..scale(height / 4),
-        ),
-      );
+      Future.delayed(Duration(milliseconds: i * 300), () {
+        if (_activeBonusBalls > 0) {
+          world.add(
+            Ball(
+              isBonus: true,
+              difficultyModifier: difficultyModifier,
+              radius: ballRadius,
+              position: size / 2,
+              velocity: Vector2(
+                (rand.nextDouble() - 0.5) * width,
+                height * 0.3,
+              ).normalized()..scale(bonusSpeed),
+            ),
+          );
+        }
+      });
     }
   }
 
@@ -120,7 +149,7 @@ class BrickBreaker extends FlameGame
           velocity: Vector2(
             (rand.nextDouble() - 0.5) * width,
             height * 0.3,
-          ).normalized()..scale(height / 3),
+          ).normalized()..scale(getInitialBallSpeed()),
         ),
       );
       _mainBall = null;
@@ -158,7 +187,7 @@ class BrickBreaker extends FlameGame
         velocity: Vector2(
           (rand.nextDouble() - 0.5) * width,
           height * 0.3,
-        ).normalized()..scale(height / 3),
+        ).normalized()..scale(getInitialBallSpeed()),
       ),
     );
 
@@ -171,6 +200,11 @@ class BrickBreaker extends FlameGame
     );
 
     final levelColor = brickColors[(_level - 1) % brickColors.length];
+    final hitsRequired = _level >= 2 ? 2 : 1; // Ab Level 2: 2 Treffer
+    final multiHitColor = _level >= 2
+        ? getContrastColor(levelColor)
+        : levelColor;
+
     world.addAll([
       for (var i = 0; i < brickColors.length; i++)
         for (var j = 1; j <= 5; j++)
@@ -179,7 +213,8 @@ class BrickBreaker extends FlameGame
               (i + 0.5) * brickWidth + (i + 1) * brickGutter,
               (j + 2.0) * brickHeight + j * brickGutter,
             ),
-            levelColor,
+            _level >= 2 ? multiHitColor : levelColor,
+            hitsRequired: hitsRequired,
           ),
     ]);
   }
@@ -211,4 +246,10 @@ class BrickBreaker extends FlameGame
 
   @override
   Color backgroundColor() => const Color(0xfff2e8cf);
+
+  // Kontrastreiche Farbe für Multi-Hit Bricks
+  Color getContrastColor(Color baseColor) {
+    final brightness = baseColor.computeLuminance();
+    return brightness > 0.5 ? Colors.black : Colors.orange;
+  }
 }

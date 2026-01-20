@@ -27,13 +27,13 @@ class Paddle extends PositionComponent
     final keysPressed = HardwareKeyboard.instance.logicalKeysPressed;
     if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
         keysPressed.contains(LogicalKeyboardKey.keyA)) {
-      position.x = (position.x - (dt * 700)).clamp(
+      position.x = (position.x - (dt * 600)).clamp(
         width / 2,
         game.width - width / 2,
       );
     } else if (keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
         keysPressed.contains(LogicalKeyboardKey.keyD)) {
-      position.x = (position.x + (dt * 700)).clamp(
+      position.x = (position.x + (dt * 600)).clamp(
         width / 2,
         game.width - width / 2,
       );

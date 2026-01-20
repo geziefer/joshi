@@ -4,16 +4,16 @@ import 'package:practice_game/brick_breaker.dart';
 
 class LevelDisplay extends TextComponent with HasGameReference<BrickBreaker> {
   LevelDisplay()
-    : super(
-        text: 'Level 1',
-        textRenderer: TextPaint(
-          style: const TextStyle(
-            fontSize: 48,
-            color: Color(0xff1e6091),
-            fontWeight: FontWeight.bold,
+      : super(
+          text: 'Level 1',
+          textRenderer: TextPaint(
+            style: const TextStyle(
+              fontSize: 48,
+              color: Color(0xff1e6091),
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-      );
+        );
 
   @override
   void onLoad() {

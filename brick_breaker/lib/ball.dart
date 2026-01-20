@@ -1,10 +1,10 @@
 import 'dart:ui';
 
+import 'package:flame/collisions.dart';
+import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:practice_game/brick.dart';
 import 'package:practice_game/brick_breaker.dart';
-import 'package:flame/effects.dart';
-import 'package:flame/components.dart';
-import 'package:flame/collisions.dart';
 import 'package:practice_game/highscore_manager.dart';
 import 'package:practice_game/paddle.dart';
 import 'package:practice_game/play_area.dart';
@@ -29,10 +29,19 @@ class Ball extends CircleComponent
   final Vector2 velocity;
   final double difficultyModifier;
   final bool isBonus;
+  static const double maxSpeed = 1200.0; // Maximale Geschwindigkeit
 
   @override
   void update(double dt) {
     super.update(dt);
+    
+    // Geschwindigkeit begrenzen
+    final currentSpeed = velocity.length;
+    if (currentSpeed > maxSpeed) {
+      velocity.normalize();
+      velocity.scale(maxSpeed);
+    }
+    
     position += velocity * dt;
   }
 
@@ -86,7 +95,10 @@ class Ball extends CircleComponent
       } else if (position.x > other.position.x) {
         velocity.x = -velocity.x;
       }
-      velocity.setFrom(velocity * difficultyModifier);
+      // Level 1: Beschleunigung bei jedem Hit
+      if (game.level == 1) {
+        velocity.setFrom(velocity * difficultyModifier);
+      }
       if (!isBonus) {
         game.onBrickDestroyed(other.position);
       }
