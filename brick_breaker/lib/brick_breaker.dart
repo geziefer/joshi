@@ -42,15 +42,15 @@ class BrickBreaker extends FlameGame
   Ball? _mainBall;
   int _activeBonusBalls = 0;
 
-  int _level = 2;
+  int _level = 1;
   int get level => _level;
 
   double getInitialBallSpeed() {
-    return height / (4 - (_level * 0.15));
+    return height / (3 - (_level * 0.2));
   }
 
   double getPreviousLevelSpeed() {
-    return height / (4 - ((_level - 1) * 0.15));
+    return height / (3 - ((_level - 1) * 0.2));
   }
 
   void loseLife() {
