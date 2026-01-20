@@ -39,10 +39,7 @@ class StartScreen extends StatelessWidget {
                 children: [
                   const Text(
                     'TOP 10 HIGHSCORES',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   FutureBuilder<List<int>>(
@@ -74,8 +71,15 @@ class StartScreen extends StatelessWidget {
               onPressed: onStart,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xff1e6091),
-                padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 20),
-                textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                foregroundColor: const Color.fromARGB(255, 196, 25, 42),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 48,
+                  vertical: 20,
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               child: const Text('SPIEL STARTEN'),
             ),
