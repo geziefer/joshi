@@ -16,17 +16,19 @@ class Ball extends CircleComponent
     required super.position,
     required double radius,
     required this.difficultyModifier,
+    this.isBonus = false,
   }) : super(
          radius: radius,
          anchor: Anchor.center,
          paint: Paint()
-           ..color = const Color(0xff1e6091)
+           ..color = isBonus ? const Color(0xfff94144) : const Color(0xff1e6091)
            ..style = PaintingStyle.fill,
          children: [CircleHitbox()],
        );
 
   final Vector2 velocity;
   final double difficultyModifier;
+  final bool isBonus;
 
   @override
   void update(double dt) {
@@ -48,20 +50,26 @@ class Ball extends CircleComponent
       } else if (intersectionPoints.first.x >= game.width) {
         velocity.x = -velocity.x;
       } else if (intersectionPoints.first.y >= game.height) {
-        final currentScore = game.score;
-        add(
-          RemoveEffect(
-            delay: 0.35,
-            onComplete: () {
-              if (game.lives <= 1) {
-                if (currentScore > 0) {
-                  HighscoreManager.addScore(currentScore);
+        if (isBonus) {
+          add(RemoveEffect(delay: 0.35, onComplete: () {
+            game.onBonusBallLost();
+          }));
+        } else {
+          final currentScore = game.score;
+          add(
+            RemoveEffect(
+              delay: 0.35,
+              onComplete: () {
+                if (game.lives <= 1) {
+                  if (currentScore > 0) {
+                    HighscoreManager.addScore(currentScore);
+                  }
                 }
-              }
-              game.loseLife();
-            },
-          ),
-        );
+                game.loseLife();
+              },
+            ),
+          );
+        }
       }
     } else if (other is Paddle) {
       velocity.y = -velocity.y;
@@ -79,6 +87,9 @@ class Ball extends CircleComponent
         velocity.x = -velocity.x;
       }
       velocity.setFrom(velocity * difficultyModifier);
+      if (!isBonus) {
+        game.onBrickDestroyed(other.position);
+      }
     }
   }
 }

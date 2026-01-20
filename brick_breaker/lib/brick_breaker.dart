@@ -11,6 +11,7 @@ import 'package:practice_game/lives_display.dart';
 import 'package:practice_game/main.dart';
 import 'package:practice_game/paddle.dart';
 import 'package:practice_game/play_area.dart';
+import 'package:practice_game/power_up.dart';
 import 'package:practice_game/score_display.dart';
 
 class BrickBreaker extends FlameGame
@@ -34,6 +35,11 @@ class BrickBreaker extends FlameGame
 
   int _lives = 3;
   int get lives => _lives;
+
+  int _bricksDestroyed = 0;
+  int _bricksUntilPowerUp = 5;
+  Ball? _mainBall;
+  int _activeBonusBalls = 0;
 
   void loseLife() {
     _lives--;
@@ -67,6 +73,56 @@ class BrickBreaker extends FlameGame
     _score++;
   }
 
+  void onBrickDestroyed(Vector2 brickPosition) {
+    _bricksDestroyed++;
+    if (_bricksDestroyed >= _bricksUntilPowerUp) {
+      _bricksDestroyed = 0;
+      _bricksUntilPowerUp = rand.nextInt(6) + 5;
+      world.add(PowerUp(position: size / 2));
+    }
+  }
+
+  void activatePowerUp() {
+    _mainBall = world.children.query<Ball>().firstOrNull;
+    if (_mainBall != null) {
+      _mainBall!.removeFromParent();
+    }
+
+    _activeBonusBalls = 3;
+    for (var i = 0; i < 3; i++) {
+      world.add(
+        Ball(
+          isBonus: true,
+          difficultyModifier: difficultyModifier,
+          radius: ballRadius,
+          position: size / 2,
+          velocity: Vector2(
+            (rand.nextDouble() - 0.5) * width,
+            height * 0.3,
+          ).normalized()..scale(height / 4),
+        ),
+      );
+    }
+  }
+
+  void onBonusBallLost() {
+    _activeBonusBalls--;
+    if (_activeBonusBalls <= 0 && _mainBall != null) {
+      world.add(
+        Ball(
+          difficultyModifier: difficultyModifier,
+          radius: ballRadius,
+          position: size / 2,
+          velocity: Vector2(
+            (rand.nextDouble() - 0.5) * width,
+            height * 0.3,
+          ).normalized()..scale(height / 4),
+        ),
+      );
+      _mainBall = null;
+    }
+  }
+
   @override
   void onLoad() {
     super.onLoad();
@@ -81,9 +137,16 @@ class BrickBreaker extends FlameGame
     world.removeAll(world.children.query<Ball>());
     world.removeAll(world.children.query<Paddle>());
     world.removeAll(world.children.query<Brick>());
+    world.removeAll(world.children.query<PowerUp>());
+
+    _bricksDestroyed = 0;
+    _bricksUntilPowerUp = rand.nextInt(6) + 5;
+    _mainBall = null;
+    _activeBonusBalls = 0;
 
     world.add(
       Ball(
+        isBonus: false,
         difficultyModifier: difficultyModifier,
         radius: ballRadius,
         position: size / 2,
