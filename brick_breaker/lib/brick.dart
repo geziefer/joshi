@@ -6,11 +6,11 @@ import 'package:practice_game/main.dart';
 
 class Brick extends RectangleComponent
     with CollisionCallbacks, HasGameReference<BrickBreaker> {
-  Brick(Vector2 position, Color color, {this.hitsRequired = 1})
+  Brick(Vector2 position, Color color, {this.hitsRequired = 1, Vector2? customSize})
     : _baseColor = color,
       super(
         position: position,
-        size: Vector2(brickWidth, brickHeight),
+        size: customSize ?? Vector2(brickWidth, brickHeight),
         anchor: Anchor.center,
         paint: Paint()
           ..color = color

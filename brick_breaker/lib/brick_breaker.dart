@@ -47,11 +47,11 @@ class BrickBreaker extends FlameGame
   int get level => _level;
 
   double getInitialBallSpeed() {
-    return height / (3 - (_level * 0.2));
+    return height / (3 - (_level * 0.25));
   }
 
   double getPreviousLevelSpeed() {
-    return height / (3 - ((_level - 1) * 0.2));
+    return height / (3 - ((_level - 1) * 0.25));
   }
 
   void loseLife() {
@@ -122,21 +122,27 @@ class BrickBreaker extends FlameGame
   }
 
   void onBrickDestroyed(Vector2 brickPosition) {
-    _bricksDestroyed++;
+    // Counter nur erhöhen wenn kein Power-Up aktiv ist
+    final powerUpExists = world.children.query<PowerUp>().isNotEmpty;
+    final bonusBallsActive = _activeBonusBalls > 0;
+    
+    if (!powerUpExists && !bonusBallsActive) {
+      _bricksDestroyed++;
+    }
 
     // Ball beschleunigen bei Brick-Zerstörung (ab Level 2)
     if (_level >= 2) {
       final balls = world.children.query<Ball>();
-      final levelModifier = 1.0 + (_level * 0.01); // 1% pro Level (reduziert von 2%)
+      final levelModifier = 1.0 + (_level * 0.01);
       
-      // Alle Bälle (blau und rot) gleich schnell machen
       for (final ball in balls) {
         ball.velocity.setFrom(ball.velocity * levelModifier);
       }
     }
 
-    if (_bricksDestroyed >= _bricksUntilPowerUp) {
-      if (world.children.query<PowerUp>().isEmpty) {
+    // Power-Up nur spawnen wenn Counter erreicht und keins existiert
+    if (_level >= 2 && _bricksDestroyed >= _bricksUntilPowerUp) {
+      if (world.children.query<PowerUp>().isEmpty && _activeBonusBalls == 0) {
         _bricksDestroyed = 0;
         _bricksUntilPowerUp = rand.nextInt(6) + 5;
         world.add(PowerUp(position: size / 2));
@@ -244,23 +250,62 @@ class BrickBreaker extends FlameGame
     );
 
     final levelColor = brickColors[(_level - 1) % brickColors.length];
-    final hitsRequired = _level >= 2 ? 2 : 1; // Ab Level 2: 2 Treffer
+    final hitsRequired = _level >= 2 ? 2 : 1;
     final multiHitColor = _level >= 2
         ? getContrastColor(levelColor)
         : levelColor;
 
-    world.addAll([
-      for (var i = 0; i < brickColors.length; i++)
-        for (var j = 1; j <= 5; j++)
-          Brick(
-            Vector2(
-              (i + 0.5) * brickWidth + (i + 1) * brickGutter,
-              (j + 2.0) * brickHeight + j * brickGutter,
+    if (_level == 1) {
+      // Level 1: 10 große Bricks (2 Reihen x 5 Spalten)
+      final largeBrickWidth = (width - (6 * brickGutter)) / 5;
+      final largeBrickHeight = brickHeight * 3;
+      
+      world.addAll([
+        for (var i = 0; i < 5; i++)
+          for (var j = 0; j < 2; j++)
+            Brick(
+              Vector2(
+                (i + 0.5) * largeBrickWidth + (i + 1) * brickGutter,
+                (j + 2.0) * largeBrickHeight + (j + 1) * brickGutter,
+              ),
+              levelColor,
+              hitsRequired: hitsRequired,
+              customSize: Vector2(largeBrickWidth, largeBrickHeight),
             ),
-            _level >= 2 ? multiHitColor : levelColor,
-            hitsRequired: hitsRequired,
-          ),
-    ]);
+      ]);
+    } else if (_level == 2) {
+      // Level 2: 24 Bricks (4 Reihen x 6 Spalten)
+      final mediumBrickWidth = (width - (7 * brickGutter)) / 6;
+      final mediumBrickHeight = brickHeight * 1.25;
+      
+      world.addAll([
+        for (var i = 0; i < 6; i++)
+          for (var j = 0; j < 4; j++)
+            Brick(
+              Vector2(
+                (i + 0.5) * mediumBrickWidth + (i + 1) * brickGutter,
+                (j + 2.0) * mediumBrickHeight + (j + 1) * brickGutter,
+              ),
+              multiHitColor,
+              hitsRequired: hitsRequired,
+              customSize: Vector2(mediumBrickWidth, mediumBrickHeight),
+            ),
+      ]);
+    } else {
+      // Level 2+: Normale 50 Bricks
+      world.addAll([
+        for (var i = 0; i < brickColors.length; i++)
+          for (var j = 1; j <= 5; j++)
+            Brick(
+              Vector2(
+                (i + 0.5) * brickWidth + (i + 1) * brickGutter,
+                (j + 2.0) * brickHeight + j * brickGutter,
+              ),
+              multiHitColor,
+              hitsRequired: hitsRequired,
+            ),
+      ]);
+    }
   }
 
   @override
