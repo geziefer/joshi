@@ -41,6 +41,7 @@ class BrickBreaker extends FlameGame
   int _bricksUntilPowerUp = 5;
   Ball? _mainBall;
   int _activeBonusBalls = 0;
+  double _bonusBallTimer = 0;
 
   int _level = 1;
   int get level => _level;
@@ -59,6 +60,41 @@ class BrickBreaker extends FlameGame
       onGameOver();
     } else {
       respawnBall();
+    }
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+
+    if (_activeBonusBalls > 0) {
+      _bonusBallTimer += dt;
+      if (_bonusBallTimer >= 30.0) {
+        final bonusBalls = world.children
+            .query<Ball>()
+            .where((b) => b.isBonus)
+            .toList();
+        for (final ball in bonusBalls) {
+          ball.removeFromParent();
+        }
+        _activeBonusBalls = 0;
+        _bonusBallTimer = 0;
+
+        if (_mainBall != null) {
+          world.add(
+            Ball(
+              difficultyModifier: difficultyModifier,
+              radius: ballRadius,
+              position: size / 2,
+              velocity: Vector2(
+                (rand.nextDouble() - 0.5) * width,
+                height * 0.3,
+              ).normalized()..scale(getInitialBallSpeed()),
+            ),
+          );
+          _mainBall = null;
+        }
+      }
     }
   }
 
@@ -91,11 +127,11 @@ class BrickBreaker extends FlameGame
     // Ball beschleunigen bei Brick-Zerstörung (ab Level 2)
     if (_level >= 2) {
       final balls = world.children.query<Ball>();
+      final levelModifier = 1.0 + (_level * 0.01); // 1% pro Level (reduziert von 2%)
+      
+      // Alle Bälle (blau und rot) gleich schnell machen
       for (final ball in balls) {
-        if (!ball.isBonus) {
-          final levelModifier = 1.0 + (_level * 0.02); // 2% pro Level
-          ball.velocity.setFrom(ball.velocity * levelModifier);
-        }
+        ball.velocity.setFrom(ball.velocity * levelModifier);
       }
     }
 
@@ -115,9 +151,16 @@ class BrickBreaker extends FlameGame
     }
 
     _activeBonusBalls = 3;
+    _bonusBallTimer = 0;
     final bonusSpeed = _level > 1
         ? getPreviousLevelSpeed()
         : getInitialBallSpeed();
+
+    final sharedDirection = Vector2(
+      (rand.nextDouble() - 0.5) * width,
+      height * 0.3,
+    ).normalized()..scale(bonusSpeed);
+
     for (var i = 0; i < 3; i++) {
       Future.delayed(Duration(milliseconds: i * 300), () {
         if (_activeBonusBalls > 0) {
@@ -127,10 +170,7 @@ class BrickBreaker extends FlameGame
               difficultyModifier: difficultyModifier,
               radius: ballRadius,
               position: size / 2,
-              velocity: Vector2(
-                (rand.nextDouble() - 0.5) * width,
-                height * 0.3,
-              ).normalized()..scale(bonusSpeed),
+              velocity: Vector2(sharedDirection.x, sharedDirection.y),
             ),
           );
         }
@@ -140,19 +180,22 @@ class BrickBreaker extends FlameGame
 
   void onBonusBallLost() {
     _activeBonusBalls--;
-    if (_activeBonusBalls <= 0 && _mainBall != null) {
-      world.add(
-        Ball(
-          difficultyModifier: difficultyModifier,
-          radius: ballRadius,
-          position: size / 2,
-          velocity: Vector2(
-            (rand.nextDouble() - 0.5) * width,
-            height * 0.3,
-          ).normalized()..scale(getInitialBallSpeed()),
-        ),
-      );
-      _mainBall = null;
+    if (_activeBonusBalls <= 0) {
+      _bonusBallTimer = 0;
+      if (_mainBall != null) {
+        world.add(
+          Ball(
+            difficultyModifier: difficultyModifier,
+            radius: ballRadius,
+            position: size / 2,
+            velocity: Vector2(
+              (rand.nextDouble() - 0.5) * width,
+              height * 0.3,
+            ).normalized()..scale(getInitialBallSpeed()),
+          ),
+        );
+        _mainBall = null;
+      }
     }
   }
 
@@ -177,6 +220,7 @@ class BrickBreaker extends FlameGame
     _bricksUntilPowerUp = rand.nextInt(6) + 5;
     _mainBall = null;
     _activeBonusBalls = 0;
+    _bonusBallTimer = 0;
 
     world.add(
       Ball(

@@ -29,7 +29,7 @@ class Ball extends CircleComponent
   final Vector2 velocity;
   final double difficultyModifier;
   final bool isBonus;
-  static const double maxSpeed = 1200.0; // Maximale Geschwindigkeit
+  static const double maxSpeed = 900.0;
 
   @override
   void update(double dt) {
@@ -43,6 +43,20 @@ class Ball extends CircleComponent
     }
     
     position += velocity * dt;
+    
+    // Sicherheits-Check: Ball innerhalb halten
+    if (position.y < 0) {
+      position.y = 0;
+      velocity.y = velocity.y.abs();
+    }
+    if (position.x < 0) {
+      position.x = 0;
+      velocity.x = velocity.x.abs();
+    }
+    if (position.x > game.width) {
+      position.x = game.width;
+      velocity.x = -velocity.x.abs();
+    }
   }
 
   @override
@@ -95,8 +109,8 @@ class Ball extends CircleComponent
       } else if (position.x > other.position.x) {
         velocity.x = -velocity.x;
       }
-      // Level 1: Beschleunigung bei jedem Hit
-      if (game.level == 1) {
+      // Level 1: Beschleunigung bei jedem Hit (nur blauer Ball)
+      if (game.level == 1 && !isBonus) {
         velocity.setFrom(velocity * difficultyModifier);
       }
       if (!isBonus) {
