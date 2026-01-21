@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:practice_game/ball.dart';
 import 'package:practice_game/brick.dart';
+import 'package:practice_game/invincibility_border.dart';
+import 'package:practice_game/invincibility_power_up.dart';
 import 'package:practice_game/level_display.dart';
 import 'package:practice_game/lives_display.dart';
 import 'package:practice_game/main.dart';
@@ -43,15 +45,20 @@ class BrickBreaker extends FlameGame
   int _activeBonusBalls = 0;
   double _bonusBallTimer = 0;
 
-  int _level = 1;
+  bool _isInvincible = false;
+  double _invincibilityTimer = 0;
+  double _invincibilityPowerUpTimer = 0;
+
+  int _level = 3;
   int get level => _level;
+  bool get isInvincible => _isInvincible;
 
   double getInitialBallSpeed() {
-    return height / (3 - (_level * 0.25));
+    return height / (2.8 - (_level * 0.3));
   }
 
   double getPreviousLevelSpeed() {
-    return height / (3 - ((_level - 1) * 0.25));
+    return height / (2.8 - ((_level - 1) * 0.3));
   }
 
   void loseLife() {
@@ -96,6 +103,33 @@ class BrickBreaker extends FlameGame
         }
       }
     }
+
+    // Invincibility timer
+    if (_isInvincible) {
+      _invincibilityTimer += dt;
+      if (_invincibilityTimer >= 10.0) {
+        _isInvincible = false;
+        _invincibilityTimer = 0;
+        _invincibilityPowerUpTimer = 0;
+        // Border entfernen
+        world.removeAll(world.children.query<InvincibilityBorder>());
+      }
+    }
+
+    // Invincibility Power-Up spawner (Level 3+)
+    // Timer läuft nur wenn keine roten Bälle aktiv sind
+    if (_level >= 3 && !_isInvincible && _activeBonusBalls == 0) {
+      _invincibilityPowerUpTimer += dt;
+      final spawnTime = 10.0 + (rand.nextDouble() * 10.0);
+      if (_invincibilityPowerUpTimer >= spawnTime) {
+        if (world.children.query<InvincibilityPowerUp>().isEmpty) {
+          final randomX = rand.nextDouble() * width;
+          final spawnY = height * 0.4; // Unter den Bricks
+          world.add(InvincibilityPowerUp(position: Vector2(randomX, spawnY)));
+          _invincibilityPowerUpTimer = 0;
+        }
+      }
+    }
   }
 
   void respawnBall() {
@@ -125,8 +159,9 @@ class BrickBreaker extends FlameGame
     // Counter nur erhöhen wenn kein Power-Up aktiv ist
     final powerUpExists = world.children.query<PowerUp>().isNotEmpty;
     final bonusBallsActive = _activeBonusBalls > 0;
-    
-    if (!powerUpExists && !bonusBallsActive) {
+    final invincibilityActive = _isInvincible;
+
+    if (!powerUpExists && !bonusBallsActive && !invincibilityActive) {
       _bricksDestroyed++;
     }
 
@@ -134,7 +169,7 @@ class BrickBreaker extends FlameGame
     if (_level >= 2) {
       final balls = world.children.query<Ball>();
       final levelModifier = 1.0 + (_level * 0.01);
-      
+
       for (final ball in balls) {
         ball.velocity.setFrom(ball.velocity * levelModifier);
       }
@@ -142,7 +177,7 @@ class BrickBreaker extends FlameGame
 
     // Power-Up nur spawnen wenn Counter erreicht und keins existiert
     if (_level >= 2 && _bricksDestroyed >= _bricksUntilPowerUp) {
-      if (world.children.query<PowerUp>().isEmpty && _activeBonusBalls == 0) {
+      if (world.children.query<PowerUp>().isEmpty && _activeBonusBalls == 0 && !_isInvincible) {
         _bricksDestroyed = 0;
         _bricksUntilPowerUp = rand.nextInt(6) + 5;
         world.add(PowerUp(position: size / 2));
@@ -158,6 +193,10 @@ class BrickBreaker extends FlameGame
 
     _activeBonusBalls = 3;
     _bonusBallTimer = 0;
+    
+    // Grünes Power-Up entfernen wenn vorhanden
+    world.removeAll(world.children.query<InvincibilityPowerUp>());
+    
     final bonusSpeed = _level > 1
         ? getPreviousLevelSpeed()
         : getInitialBallSpeed();
@@ -205,6 +244,38 @@ class BrickBreaker extends FlameGame
     }
   }
 
+  void activateInvincibility() {
+    _isInvincible = true;
+    _invincibilityTimer = 0;
+
+    // Border-Effekt hinzufügen
+    world.add(InvincibilityBorder());
+
+    // Text-Anzeige hinzufügen
+    final textComponent = TextComponent(
+      text: 'Unsterblichkeit',
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          fontSize: 60,
+          color: Color(0xff00ff00),
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      position: Vector2(width / 2, height / 2),
+      anchor: Anchor.center,
+    );
+    world.add(textComponent);
+
+    // Text nach 2 Sekunden entfernen
+    Future.delayed(const Duration(seconds: 2), () {
+      textComponent.removeFromParent();
+    });
+  }
+
+  void onInvincibilityPowerUpMissed() {
+    _invincibilityPowerUpTimer = 0;
+  }
+
   @override
   void onLoad() {
     super.onLoad();
@@ -221,12 +292,16 @@ class BrickBreaker extends FlameGame
     world.removeAll(world.children.query<Paddle>());
     world.removeAll(world.children.query<Brick>());
     world.removeAll(world.children.query<PowerUp>());
+    world.removeAll(world.children.query<InvincibilityPowerUp>());
 
     _bricksDestroyed = 0;
     _bricksUntilPowerUp = rand.nextInt(6) + 5;
     _mainBall = null;
     _activeBonusBalls = 0;
     _bonusBallTimer = 0;
+    _isInvincible = false;
+    _invincibilityTimer = 0;
+    _invincibilityPowerUpTimer = 0;
 
     world.add(
       Ball(
@@ -259,7 +334,7 @@ class BrickBreaker extends FlameGame
       // Level 1: 10 große Bricks (2 Reihen x 5 Spalten)
       final largeBrickWidth = (width - (6 * brickGutter)) / 5;
       final largeBrickHeight = brickHeight * 3;
-      
+
       world.addAll([
         for (var i = 0; i < 5; i++)
           for (var j = 0; j < 2; j++)
@@ -277,7 +352,7 @@ class BrickBreaker extends FlameGame
       // Level 2: 24 Bricks (4 Reihen x 6 Spalten)
       final mediumBrickWidth = (width - (7 * brickGutter)) / 6;
       final mediumBrickHeight = brickHeight * 1.25;
-      
+
       world.addAll([
         for (var i = 0; i < 6; i++)
           for (var j = 0; j < 4; j++)
@@ -292,7 +367,16 @@ class BrickBreaker extends FlameGame
             ),
       ]);
     } else {
-      // Level 2+: Normale 50 Bricks
+      // Level 3+: 50 Bricks mit 5 zufälligen unzerstörbaren
+      final allPositions = <int>[];
+      for (var i = 0; i < brickColors.length; i++) {
+        for (var j = 1; j <= 5; j++) {
+          allPositions.add(i * 5 + j);
+        }
+      }
+      allPositions.shuffle(rand);
+      final indestructiblePositions = allPositions.take(5).toSet();
+
       world.addAll([
         for (var i = 0; i < brickColors.length; i++)
           for (var j = 1; j <= 5; j++)
@@ -303,6 +387,7 @@ class BrickBreaker extends FlameGame
               ),
               multiHitColor,
               hitsRequired: hitsRequired,
+              isIndestructible: indestructiblePositions.contains(i * 5 + j),
             ),
       ]);
     }

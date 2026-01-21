@@ -78,20 +78,28 @@ class Ball extends CircleComponent
             game.onBonusBallLost();
           }));
         } else {
-          final currentScore = game.score;
-          add(
-            RemoveEffect(
-              delay: 0.35,
-              onComplete: () {
-                if (game.lives <= 1) {
-                  if (currentScore > 0) {
-                    HighscoreManager.addScore(currentScore);
+          // Nur Leben abziehen wenn nicht unsterblich
+          if (!game.isInvincible) {
+            final currentScore = game.score;
+            add(
+              RemoveEffect(
+                delay: 0.35,
+                onComplete: () {
+                  if (game.lives <= 1) {
+                    if (currentScore > 0) {
+                      HighscoreManager.addScore(currentScore);
+                    }
                   }
-                }
-                game.loseLife();
-              },
-            ),
-          );
+                  game.loseLife();
+                },
+              ),
+            );
+          } else {
+            // Unsterblich: Ball einfach entfernen und respawnen
+            add(RemoveEffect(delay: 0.35, onComplete: () {
+              game.respawnBall();
+            }));
+          }
         }
       }
     } else if (other is Paddle) {

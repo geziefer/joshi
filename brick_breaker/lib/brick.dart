@@ -6,20 +6,21 @@ import 'package:practice_game/main.dart';
 
 class Brick extends RectangleComponent
     with CollisionCallbacks, HasGameReference<BrickBreaker> {
-  Brick(Vector2 position, Color color, {this.hitsRequired = 1, Vector2? customSize})
+  Brick(Vector2 position, Color color, {this.hitsRequired = 1, Vector2? customSize, this.isIndestructible = false})
     : _baseColor = color,
       super(
         position: position,
         size: customSize ?? Vector2(brickWidth, brickHeight),
         anchor: Anchor.center,
         paint: Paint()
-          ..color = color
+          ..color = isIndestructible ? const Color(0xff808080) : color
           ..style = PaintingStyle.fill,
         children: [RectangleHitbox()],
       );
 
   final int hitsRequired;
   final Color _baseColor;
+  final bool isIndestructible;
   int _currentHits = 0;
 
   @override
@@ -28,17 +29,27 @@ class Brick extends RectangleComponent
     PositionComponent other,
   ) {
     super.onCollisionStart(intersectionPoints, other);
+    
+    if (isIndestructible) {
+      return;
+    }
+    
     _currentHits++;
 
     if (_currentHits >= hitsRequired) {
       removeFromParent();
       game.incScore();
 
-      if (game.world.children.query<Brick>().length == 1) {
+      // Nur zerstörbare Bricks zählen für Level-Fortschritt
+      final remainingDestructibleBricks = game.world.children
+          .query<Brick>()
+          .where((b) => !b.isIndestructible)
+          .length;
+      
+      if (remainingDestructibleBricks == 1) {
         game.nextLevel();
       }
     } else {
-      // Farbe aufhellen bei jedem Treffer
       paint.color = Color.lerp(
         _baseColor,
         Colors.white,
