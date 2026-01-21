@@ -21,11 +21,13 @@ class _StartScreenState extends State<StartScreen> {
           colors: [Color(0xffa9d6e5), Color(0xfff2e8cf)],
         ),
       ),
-      child: SingleChildScrollView(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+      child: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
               const SizedBox(height: 40),
               const Text(
                 'BRICK BREAKER',
@@ -89,7 +91,8 @@ class _StartScreenState extends State<StartScreen> {
                 ),
                 child: const Text('SPIEL STARTEN'),
               ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

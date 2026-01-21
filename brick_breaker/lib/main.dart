@@ -83,6 +83,7 @@ class _GameAppState extends State<GameApp> {
                 },
               )
             : StartScreen(
+                key: ValueKey(_gameStarted), // Erzwingt Neuaufbau
                 onStart: () {
                   setState(() {
                     _showUsernameDialog = true;

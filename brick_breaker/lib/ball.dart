@@ -98,6 +98,7 @@ class Ball extends CircleComponent
                 onComplete: () {
                   if (game.lives <= 1) {
                     if (currentScore > 0) {
+                      print('Saving score: $currentUsername - $currentScore');
                       HighscoreManager.addScore(currentUsername, currentScore);
                     }
                   }

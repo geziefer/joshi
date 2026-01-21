@@ -50,7 +50,7 @@ class HighscoreManager {
         final allScores = (data['globalHighscores'] as List)
             .map((e) => HighscoreEntry.fromMap(e))
             .toList();
-        
+
         return _filterBestScorePerUsername(allScores);
       } else {
         final directory = await getApplicationDocumentsDirectory();
@@ -65,7 +65,7 @@ class HighscoreManager {
         final allScores = (data['globalHighscores'] as List)
             .map((e) => HighscoreEntry.fromMap(e))
             .toList();
-        
+
         return _filterBestScorePerUsername(allScores);
       }
     } catch (e) {
@@ -73,16 +73,18 @@ class HighscoreManager {
     }
   }
 
-  static List<HighscoreEntry> _filterBestScorePerUsername(List<HighscoreEntry> scores) {
+  static List<HighscoreEntry> _filterBestScorePerUsername(
+    List<HighscoreEntry> scores,
+  ) {
     final Map<String, HighscoreEntry> bestScores = {};
-    
+
     for (final score in scores) {
-      if (!bestScores.containsKey(score.username) || 
+      if (!bestScores.containsKey(score.username) ||
           bestScores[score.username]!.score < score.score) {
         bestScores[score.username] = score;
       }
     }
-    
+
     final result = bestScores.values.toList();
     result.sort((a, b) => b.score.compareTo(a.score));
     return result.take(10).toList();
