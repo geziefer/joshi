@@ -49,7 +49,7 @@ class BrickBreaker extends FlameGame
   double _invincibilityTimer = 0;
   double _invincibilityPowerUpTimer = 0;
 
-  int _level = 2;
+  int _level = 1;
   int get level => _level;
   bool get isInvincible => _isInvincible;
 
