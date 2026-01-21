@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:practice_game/highscore_manager.dart';
 
 class UsernameDialog extends StatefulWidget {
   final VoidCallback onStart;
@@ -11,11 +12,28 @@ class UsernameDialog extends StatefulWidget {
 
 class _UsernameDialogState extends State<UsernameDialog> {
   final _controller = TextEditingController();
+  bool _showWarning = false;
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkAndStart() async {
+    final username = _controller.text.trim();
+    if (username.isEmpty) return;
+
+    final exists = await HighscoreManager.usernameExistsInGlobal(username);
+    
+    if (exists && !_showWarning) {
+      setState(() {
+        _showWarning = true;
+      });
+    } else {
+      currentUsername = username;
+      widget.onStart();
+    }
   }
 
   @override
@@ -51,16 +69,33 @@ class _UsernameDialogState extends State<UsernameDialog> {
                   hintText: 'Dein Name',
                 ),
                 maxLength: 20,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  final username = _controller.text.trim();
-                  if (username.isNotEmpty) {
-                    currentUsername = username;
-                    widget.onStart();
+                onChanged: (_) {
+                  if (_showWarning) {
+                    setState(() {
+                      _showWarning = false;
+                    });
                   }
                 },
+              ),
+              if (_showWarning)
+                const SizedBox(height: 16),
+              if (_showWarning)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Color.fromRGBO(255, 165, 0, 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange),
+                  ),
+                  child: const Text(
+                    'Dieser Username ist bereits vergeben. Dies beeinflusst die Highscore Tabelle. Trotzdem weitermachen?',
+                    style: TextStyle(fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _checkAndStart,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xff1e6091),
                   foregroundColor: Colors.white,
@@ -73,7 +108,7 @@ class _UsernameDialogState extends State<UsernameDialog> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                child: const Text('GO'),
+                child: Text(_showWarning ? 'JA' : 'GO'),
               ),
             ],
           ),

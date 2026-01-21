@@ -29,42 +29,87 @@ class StartScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 40),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'TOP 10 HIGHSCORES',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 350,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  const SizedBox(height: 16),
-                  FutureBuilder<List<HighscoreEntry>>(
-                    future: HighscoreManager.getHighscores(),
-                    builder: (context, snapshot) {
-                      final scores = snapshot.data ?? [];
-                      if (scores.isEmpty) {
-                        return const Text('Noch keine Highscores');
-                      }
-                      return Column(
-                        children: List.generate(
-                          scores.length,
-                          (i) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Text(
-                              '${i + 1}. ${scores[i].username} - ${scores[i].score} Punkte',
-                              style: const TextStyle(fontSize: 18),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Persönlicher Highscore',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      FutureBuilder<List<HighscoreEntry>>(
+                        future: HighscoreManager.getHighscores(),
+                        builder: (context, snapshot) {
+                          final scores = snapshot.data ?? [];
+                          if (scores.isEmpty) {
+                            return const Text('Noch keine Highscores');
+                          }
+                          return Column(
+                            children: List.generate(
+                              scores.length,
+                              (i) => Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Text(
+                                  '${i + 1}. ${scores[i].username} - ${scores[i].score}',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      );
-                    },
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 20),
+                Container(
+                  width: 350,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Globaler Highscore',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      FutureBuilder<List<HighscoreEntry>>(
+                        future: HighscoreManager.getGlobalHighscores(),
+                        builder: (context, snapshot) {
+                          final scores = snapshot.data ?? [];
+                          if (scores.isEmpty) {
+                            return const Text('Noch keine Highscores');
+                          }
+                          return Column(
+                            children: List.generate(
+                              scores.length,
+                              (i) => Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Text(
+                                  '${i + 1}. ${scores[i].username} - ${scores[i].score}',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 40),
             ElevatedButton(

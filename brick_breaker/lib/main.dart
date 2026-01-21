@@ -74,21 +74,21 @@ class _GameAppState extends State<GameApp> {
                 ),
               )
             : _showUsernameDialog
-                ? UsernameDialog(
-                    onStart: () {
-                      setState(() {
-                        _showUsernameDialog = false;
-                        _gameStarted = true;
-                      });
-                    },
-                  )
-                : StartScreen(
-                    onStart: () {
-                      setState(() {
-                        _showUsernameDialog = true;
-                      });
-                    },
-                  ),
+            ? UsernameDialog(
+                onStart: () {
+                  setState(() {
+                    _showUsernameDialog = false;
+                    _gameStarted = true;
+                  });
+                },
+              )
+            : StartScreen(
+                onStart: () {
+                  setState(() {
+                    _showUsernameDialog = true;
+                  });
+                },
+              ),
       ),
     );
   }
