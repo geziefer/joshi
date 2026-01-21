@@ -17,7 +17,8 @@ class Ball extends CircleComponent
     required double radius,
     required this.difficultyModifier,
     this.isBonus = false,
-  }) : super(
+  }) : _originalColor = isBonus ? const Color(0xfff94144) : const Color(0xff1e6091),
+       super(
          radius: radius,
          anchor: Anchor.center,
          paint: Paint()
@@ -30,6 +31,10 @@ class Ball extends CircleComponent
   final double difficultyModifier;
   final bool isBonus;
   static const double maxSpeed = 900.0;
+  int _brickHitsWithoutPaddle = 0;
+  final Color _originalColor;
+  bool canCollectPowerUp = true;
+  bool _isRemoving = false;
 
   @override
   void update(double dt) {
@@ -73,13 +78,18 @@ class Ball extends CircleComponent
       } else if (intersectionPoints.first.x >= game.width) {
         velocity.x = -velocity.x;
       } else if (intersectionPoints.first.y >= game.height) {
+        if (_isRemoving) return;
+        _isRemoving = true;
+        
         if (isBonus) {
           add(RemoveEffect(delay: 0.35, onComplete: () {
             game.onBonusBallLost();
           }));
         } else {
-          // Nur Leben abziehen wenn nicht unsterblich
-          if (!game.isInvincible) {
+          // Hauptball durchgefallen
+          final wasInvincible = game.isInvincible;
+          if (!wasInvincible) {
+            // Nicht unsterblich: Leben abziehen
             final currentScore = game.score;
             add(
               RemoveEffect(
@@ -95,9 +105,9 @@ class Ball extends CircleComponent
               ),
             );
           } else {
-            // Unsterblich: Ball einfach entfernen und respawnen
+            // Unsterblich: kein Leben abziehen, aber respawnen
             add(RemoveEffect(delay: 0.35, onComplete: () {
-              game.respawnBall();
+              game.respawnBallWithoutPowerUpCollection();
             }));
           }
         }
@@ -107,6 +117,11 @@ class Ball extends CircleComponent
       velocity.x =
           velocity.x +
           (position.x - other.position.x) / other.size.x * game.width * 0.3;
+      
+      // Counter zurücksetzen und Farbe zurücksetzen
+      _brickHitsWithoutPaddle = 0;
+      paint.color = _originalColor;
+      canCollectPowerUp = true;
     } else if (other is Brick) {
       if (position.y < other.position.y - other.size.y / 2) {
         velocity.y = -velocity.y;
@@ -123,6 +138,35 @@ class Ball extends CircleComponent
       }
       if (!isBonus) {
         game.onBrickDestroyed(other.position);
+      }
+      
+      // Level 4+: Brick-Hit Counter für alle Bälle
+      if (game.level >= 4) {
+        _brickHitsWithoutPaddle++;
+        
+        if (_brickHitsWithoutPaddle == 2) {
+          // Gelb
+          paint.color = const Color(0xffffff00);
+        } else if (_brickHitsWithoutPaddle == 3) {
+          // Orange
+          paint.color = const Color(0xffffa500);
+        } else if (_brickHitsWithoutPaddle >= 4) {
+          // Kaputt gehen
+          if (_isRemoving) return;
+          _isRemoving = true;
+          
+          if (isBonus) {
+            // Bonus Ball: einfach entfernen
+            add(RemoveEffect(delay: 0.1, onComplete: () {
+              game.onBonusBallLost();
+            }));
+          } else {
+            // Haupt Ball: entfernen und neuen blauen Ball spawnen
+            add(RemoveEffect(delay: 0.1, onComplete: () {
+              game.respawnBallWithoutPowerUpCollection();
+            }));
+          }
+        }
       }
     }
   }

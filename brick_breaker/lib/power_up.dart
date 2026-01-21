@@ -44,7 +44,7 @@ class PowerUp extends CircleComponent
     PositionComponent other,
   ) {
     super.onCollisionStart(intersectionPoints, other);
-    if (other is Ball && !other.isBonus && !_collected) {
+    if (other is Ball && !other.isBonus && !_collected && other.canCollectPowerUp) {
       _collected = true;
       game.activatePowerUp();
       removeFromParent();

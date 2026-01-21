@@ -8,7 +8,7 @@ class ScoreDisplay extends TextComponent with HasGameReference<BrickBreaker> {
           text: 'Score: 0',
           textRenderer: TextPaint(
             style: const TextStyle(
-              fontSize: 24,
+              fontSize: 36,
               color: Colors.black87,
               fontWeight: FontWeight.bold,
             ),

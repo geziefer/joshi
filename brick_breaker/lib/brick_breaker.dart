@@ -4,9 +4,9 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:practice_game/ball.dart';
 import 'package:practice_game/brick.dart';
+import 'package:practice_game/heart_power_up.dart';
 import 'package:practice_game/invincibility_border.dart';
 import 'package:practice_game/invincibility_power_up.dart';
 import 'package:practice_game/level_display.dart';
@@ -48,6 +48,7 @@ class BrickBreaker extends FlameGame
   bool _isInvincible = false;
   double _invincibilityTimer = 0;
   double _invincibilityPowerUpTimer = 0;
+  double _heartPowerUpTimer = 0;
 
   int _level = 1;
   int get level => _level;
@@ -66,7 +67,13 @@ class BrickBreaker extends FlameGame
     if (_lives <= 0) {
       onGameOver();
     } else {
-      respawnBall();
+      respawnBallWithoutPowerUpCollection();
+    }
+  }
+
+  void addLife() {
+    if (_lives < 3) {
+      _lives++;
     }
   }
 
@@ -120,13 +127,35 @@ class BrickBreaker extends FlameGame
     // Timer läuft nur wenn keine roten Bälle aktiv sind
     if (_level >= 3 && !_isInvincible && _activeBonusBalls == 0) {
       _invincibilityPowerUpTimer += dt;
-      final spawnTime = 10.0 + (rand.nextDouble() * 10.0);
+      final spawnTime = 15.0 + (rand.nextDouble() * 10.0);
       if (_invincibilityPowerUpTimer >= spawnTime) {
         if (world.children.query<InvincibilityPowerUp>().isEmpty) {
-          final randomX = rand.nextDouble() * width;
-          final spawnY = height * 0.4; // Unter den Bricks
-          world.add(InvincibilityPowerUp(position: Vector2(randomX, spawnY)));
-          _invincibilityPowerUpTimer = 0;
+          // Nur spawnen wenn kein Heart Power-Up existiert
+          if (world.children.query<HeartPowerUp>().isEmpty) {
+            final randomX = rand.nextDouble() * width;
+            final spawnY = height * 0.4;
+            world.add(InvincibilityPowerUp(position: Vector2(randomX, spawnY)));
+            _invincibilityPowerUpTimer = 0;
+          }
+          // Timer NICHT zurücksetzen wenn Heart Power-Up existiert - wartet bis es weg ist
+        }
+      }
+    }
+
+    // Heart Power-Up spawner (Level 4+)
+    if (_level >= 4 && _lives < 3) {
+      _heartPowerUpTimer += dt;
+      final spawnTime = 30.0 + (rand.nextDouble() * 15.0);
+      if (_heartPowerUpTimer >= spawnTime) {
+        if (world.children.query<HeartPowerUp>().isEmpty) {
+          // Nur spawnen wenn kein Invincibility Power-Up existiert
+          if (world.children.query<InvincibilityPowerUp>().isEmpty) {
+            final randomX = rand.nextDouble() * width;
+            final spawnY = height * 0.4;
+            world.add(HeartPowerUp(position: Vector2(randomX, spawnY)));
+            _heartPowerUpTimer = 0;
+          }
+          // Timer NICHT zurücksetzen wenn Invincibility Power-Up existiert - wartet bis es weg ist
         }
       }
     }
@@ -145,6 +174,21 @@ class BrickBreaker extends FlameGame
         ).normalized()..scale(getInitialBallSpeed()),
       ),
     );
+  }
+
+  void respawnBallWithoutPowerUpCollection() {
+    world.removeAll(world.children.query<Ball>());
+    final newBall = Ball(
+      difficultyModifier: difficultyModifier,
+      radius: ballRadius,
+      position: size / 2,
+      velocity: Vector2(
+        (rand.nextDouble() - 0.5) * width,
+        height * 0.3,
+      ).normalized()..scale(getInitialBallSpeed()),
+    );
+    newBall.canCollectPowerUp = false;
+    world.add(newBall);
   }
 
   void setScore(int newScore) {
@@ -181,7 +225,9 @@ class BrickBreaker extends FlameGame
           _activeBonusBalls == 0 &&
           !_isInvincible) {
         _bricksDestroyed = 0;
-        _bricksUntilPowerUp = rand.nextInt(6) + 5;
+        _bricksUntilPowerUp = _level >= 4
+            ? rand.nextInt(11) + 10
+            : rand.nextInt(6) + 5;
         world.add(PowerUp(position: size / 2));
       }
     }
@@ -295,15 +341,19 @@ class BrickBreaker extends FlameGame
     world.removeAll(world.children.query<Brick>());
     world.removeAll(world.children.query<PowerUp>());
     world.removeAll(world.children.query<InvincibilityPowerUp>());
+    world.removeAll(world.children.query<HeartPowerUp>());
 
     _bricksDestroyed = 0;
-    _bricksUntilPowerUp = rand.nextInt(6) + 5;
+    _bricksUntilPowerUp = _level >= 4
+        ? rand.nextInt(11) + 10
+        : rand.nextInt(6) + 5;
     _mainBall = null;
     _activeBonusBalls = 0;
     _bonusBallTimer = 0;
     _isInvincible = false;
     _invincibilityTimer = 0;
     _invincibilityPowerUpTimer = 0;
+    _heartPowerUpTimer = 0;
 
     world.add(
       Ball(
@@ -368,8 +418,8 @@ class BrickBreaker extends FlameGame
               customSize: Vector2(mediumBrickWidth, mediumBrickHeight),
             ),
       ]);
-    } else {
-      // Level 3+: 50 Bricks mit 5 zufälligen unzerstörbaren
+    } else if (_level == 3) {
+      // Level 3: 50 Bricks mit 5 zufälligen unzerstörbaren
       final allPositions = <int>[];
       for (var i = 0; i < brickColors.length; i++) {
         for (var j = 1; j <= 5; j++) {
@@ -392,27 +442,27 @@ class BrickBreaker extends FlameGame
               isIndestructible: indestructiblePositions.contains(i * 5 + j),
             ),
       ]);
-    }
-  }
+    } else {
+      // Level 4+: 60 bewegliche Bricks (6 Reihen x 10 Spalten)
+      final movingBrickWidth = (width - (11 * brickGutter)) / 10;
+      final movingBrickHeight = brickHeight * 0.8;
 
-  @override
-  void onTapDown(TapDownEvent event) {
-    super.onTapDown(event);
-    startGame();
-  }
-
-  @override
-  KeyEventResult onKeyEvent(
-    KeyEvent event,
-    Set<LogicalKeyboardKey> keysPressed,
-  ) {
-    super.onKeyEvent(event, keysPressed);
-    switch (event.logicalKey) {
-      case LogicalKeyboardKey.space:
-      case LogicalKeyboardKey.enter:
-        startGame();
+      world.addAll([
+        for (var i = 0; i < 10; i++)
+          for (var j = 0; j < 6; j++)
+            Brick(
+              Vector2(
+                (i + 0.5) * movingBrickWidth + (i + 1) * brickGutter,
+                (j + 2.0) * movingBrickHeight + (j + 1) * brickGutter,
+              ),
+              multiHitColor,
+              hitsRequired: 3,
+              customSize: Vector2(movingBrickWidth, movingBrickHeight),
+              isMoving: true,
+              moveSpeed: 100.0 + (j * 20.0),
+            ),
+      ]);
     }
-    return KeyEventResult.handled;
   }
 
   void nextLevel() {
@@ -420,10 +470,6 @@ class BrickBreaker extends FlameGame
     startGame();
   }
 
-  @override
-  Color backgroundColor() => const Color(0xfff2e8cf);
-
-  // Kontrastreiche Farbe für Multi-Hit Bricks
   Color getContrastColor(Color baseColor) {
     final brightness = baseColor.computeLuminance();
     return brightness > 0.5 ? Colors.black : Colors.orange;
