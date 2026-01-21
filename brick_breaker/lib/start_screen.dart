@@ -89,7 +89,6 @@ class _StartScreenState extends State<StartScreen> {
                 ),
                 child: const Text('SPIEL STARTEN'),
               ),
-              const SizedBox(height: 40),
             ],
           ),
         ),
