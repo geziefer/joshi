@@ -49,7 +49,7 @@ class BrickBreaker extends FlameGame
   double _invincibilityTimer = 0;
   double _invincibilityPowerUpTimer = 0;
 
-  int _level = 3;
+  int _level = 2;
   int get level => _level;
   bool get isInvincible => _isInvincible;
 
@@ -177,7 +177,9 @@ class BrickBreaker extends FlameGame
 
     // Power-Up nur spawnen wenn Counter erreicht und keins existiert
     if (_level >= 2 && _bricksDestroyed >= _bricksUntilPowerUp) {
-      if (world.children.query<PowerUp>().isEmpty && _activeBonusBalls == 0 && !_isInvincible) {
+      if (world.children.query<PowerUp>().isEmpty &&
+          _activeBonusBalls == 0 &&
+          !_isInvincible) {
         _bricksDestroyed = 0;
         _bricksUntilPowerUp = rand.nextInt(6) + 5;
         world.add(PowerUp(position: size / 2));
@@ -193,10 +195,10 @@ class BrickBreaker extends FlameGame
 
     _activeBonusBalls = 3;
     _bonusBallTimer = 0;
-    
+
     // Grünes Power-Up entfernen wenn vorhanden
     world.removeAll(world.children.query<InvincibilityPowerUp>());
-    
+
     final bonusSpeed = _level > 1
         ? getPreviousLevelSpeed()
         : getInitialBallSpeed();
