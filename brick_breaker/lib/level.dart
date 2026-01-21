@@ -1,203 +1,166 @@
+import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:practice_game/brick.dart';
 import 'package:practice_game/main.dart';
 
+class LevelData {
+  final int level;
+  final int columns;
+  final int rows;
+  final int hitsRequired;
+  final double brickWidthMultiplier;
+  final double brickHeightMultiplier;
+  final int indestructibleCount;
+  final bool isMoving;
+  final double moveSpeedBase;
+  final double moveSpeedIncrement;
+  final String ballSpeedFormula;
+  final int yellowPowerUpMin;
+  final int yellowPowerUpMax;
+  final bool greenPowerUpEnabled;
+  final bool heartPowerUpEnabled;
+  final double ballSpeedModifier;
+
+  LevelData.fromJson(Map<String, dynamic> json)
+      : level = json['level'],
+        columns = json['columns'],
+        rows = json['rows'],
+        hitsRequired = json['hitsRequired'],
+        brickWidthMultiplier = json['brickWidthMultiplier'],
+        brickHeightMultiplier = json['brickHeightMultiplier'],
+        indestructibleCount = json['indestructibleCount'],
+        isMoving = json['isMoving'],
+        moveSpeedBase = json['moveSpeedBase'],
+        moveSpeedIncrement = json['moveSpeedIncrement'],
+        ballSpeedFormula = json['ballSpeedFormula'],
+        yellowPowerUpMin = json['yellowPowerUpMin'],
+        yellowPowerUpMax = json['yellowPowerUpMax'],
+        greenPowerUpEnabled = json['greenPowerUpEnabled'],
+        heartPowerUpEnabled = json['heartPowerUpEnabled'],
+        ballSpeedModifier = json['ballSpeedModifier'];
+}
+
 class LevelConfig {
-  // Ball speed formula: height / (2.8 - (level * 0.3))
+  static Map<int, LevelData>? _levels;
+
+  static Future<void> loadLevels() async {
+    final jsonString = await rootBundle.loadString('assets/levels.json');
+    final data = json.decode(jsonString);
+    _levels = {};
+    for (var levelJson in data['levels']) {
+      final levelData = LevelData.fromJson(levelJson);
+      _levels![levelData.level] = levelData;
+    }
+  }
+
+  static LevelData _getLevel(int level) {
+    return _levels![level] ?? _levels![4]!;
+  }
+
   static double getBallSpeed(int level, double height) {
-    return height / (2.8 - (level * 0.3));
+    final levelData = _getLevel(level);
+    final formula = levelData.ballSpeedFormula;
+    return _evaluateFormula(formula, height);
   }
 
-  // Power-Up spawn intervals
+  static double _evaluateFormula(String formula, double height) {
+    formula = formula.replaceAll('height', height.toString());
+    final parts = formula.split('/');
+    return double.parse(parts[0].trim()) / double.parse(parts[1].trim());
+  }
+
   static int getYellowPowerUpInterval(int level, math.Random rand) {
-    return level >= 4 
-        ? rand.nextInt(11) + 10  // Level 4+: 10-20 bricks
-        : rand.nextInt(6) + 5;    // Level 2-3: 5-10 bricks
+    final levelData = _getLevel(level);
+    if (levelData.yellowPowerUpMax == 0) return 999999;
+    return rand.nextInt(levelData.yellowPowerUpMax - levelData.yellowPowerUpMin + 1) + levelData.yellowPowerUpMin;
   }
 
-  // Green power-up: 15-25 seconds (Level 3+)
   static double getGreenPowerUpSpawnTime(math.Random rand) {
     return 15.0 + (rand.nextInt(10) * 1.0);
   }
 
-  // Heart power-up: 30-45 seconds (Level 4+)
   static double getHeartPowerUpSpawnTime(math.Random rand) {
     return 30.0 + (rand.nextInt(15) * 1.0);
   }
 
-  // Ball speed increase per brick destruction (Level 2+)
   static double getBallSpeedModifier(int level) {
-    return 1.0 + (level * 0.01);
+    return _getLevel(level).ballSpeedModifier;
   }
 
-  // Build bricks for specific level
   static List<Brick> buildLevel(int level, double width, double height, math.Random rand) {
+    final levelData = _getLevel(level);
     final levelColor = brickColors[(level - 1) % brickColors.length];
-    final hitsRequired = level >= 2 ? 2 : 1;
-    final multiHitColor = level >= 2
-        ? _getContrastColor(levelColor)
-        : levelColor;
+    final color = levelData.hitsRequired >= 2 ? _getContrastColor(levelColor) : levelColor;
 
-    switch (level) {
-      case 1:
-        return _buildLevel1(width, levelColor, hitsRequired);
-      case 2:
-        return _buildLevel2(width, multiHitColor, hitsRequired);
-      case 3:
-        return _buildLevel3(width, multiHitColor, hitsRequired, rand);
-      default:
-        return _buildLevel4Plus(width, multiHitColor, rand);
-    }
-  }
+    final brickW = (width - ((levelData.columns + 1) * brickGutter)) / levelData.columns;
+    final brickH = brickHeight * levelData.brickHeightMultiplier;
 
-  // Level 1: 10 große Bricks (2 Reihen x 5 Spalten)
-  static List<Brick> _buildLevel1(double width, Color color, int hits) {
-    final largeBrickWidth = (width - (6 * brickGutter)) / 5;
-    final largeBrickHeight = brickHeight * 3;
+    final indestructiblePositions = _generateIndestructiblePositions(
+      levelData.columns,
+      levelData.rows,
+      levelData.indestructibleCount,
+      rand,
+    );
 
     return [
-      for (var i = 0; i < 5; i++)
-        for (var j = 0; j < 2; j++)
+      for (var i = 0; i < levelData.columns; i++)
+        for (var j = 0; j < levelData.rows; j++)
           Brick(
             Vector2(
-              (i + 0.5) * largeBrickWidth + (i + 1) * brickGutter,
-              (j + 2.0) * largeBrickHeight + (j + 1) * brickGutter,
+              (i + 0.5) * brickW + (i + 1) * brickGutter,
+              (j + 2.0) * brickH + (j + 1) * brickGutter,
             ),
             color,
-            hitsRequired: hits,
-            customSize: Vector2(largeBrickWidth, largeBrickHeight),
+            hitsRequired: levelData.hitsRequired,
+            customSize: Vector2(brickW, brickH),
+            isMoving: levelData.isMoving,
+            moveSpeed: levelData.moveSpeedBase + (j * levelData.moveSpeedIncrement),
+            isIndestructible: indestructiblePositions.contains(i * levelData.rows + j),
           ),
     ];
   }
 
-  // Level 2: 24 Bricks (4 Reihen x 6 Spalten)
-  static List<Brick> _buildLevel2(double width, Color color, int hits) {
-    final mediumBrickWidth = (width - (7 * brickGutter)) / 6;
-    final mediumBrickHeight = brickHeight * 1.25;
+  static Set<int> _generateIndestructiblePositions(int cols, int rows, int count, math.Random rand) {
+    if (count == 0) return {};
 
-    return [
-      for (var i = 0; i < 6; i++)
-        for (var j = 0; j < 4; j++)
-          Brick(
-            Vector2(
-              (i + 0.5) * mediumBrickWidth + (i + 1) * brickGutter,
-              (j + 2.0) * mediumBrickHeight + (j + 1) * brickGutter,
-            ),
-            color,
-            hitsRequired: hits,
-            customSize: Vector2(mediumBrickWidth, mediumBrickHeight),
-          ),
-    ];
-  }
-
-  // Level 3: 50 Bricks mit 10 zufälligen unzerstörbaren (keine Cluster)
-  static List<Brick> _buildLevel3(double width, Color color, int hits, math.Random rand) {
     final allPositions = <int>[];
-    for (var i = 0; i < brickColors.length; i++) {
-      for (var j = 1; j <= 5; j++) {
-        allPositions.add(i * 5 + (j - 1));
+    for (var i = 0; i < cols; i++) {
+      for (var j = 0; j < rows; j++) {
+        allPositions.add(i * rows + j);
       }
     }
     allPositions.shuffle(rand);
-    
+
     final indestructiblePositions = <int>{};
     for (final pos in allPositions) {
-      if (indestructiblePositions.length >= 10) break;
-      
-      final row = pos ~/ 5;
-      final col = pos % 5;
+      if (indestructiblePositions.length >= count) break;
+
+      final row = pos ~/ rows;
+      final col = pos % rows;
       var adjacentCount = 0;
-      
+
       final neighbors = [
-        (row - 1) * 5 + col,
-        (row + 1) * 5 + col,
-        row * 5 + (col - 1),
-        row * 5 + (col + 1),
+        (row - 1) * rows + col,
+        (row + 1) * rows + col,
+        row * rows + (col - 1),
+        row * rows + (col + 1),
       ];
-      
+
       for (final neighbor in neighbors) {
         if (indestructiblePositions.contains(neighbor)) {
           adjacentCount++;
         }
       }
-      
+
       if (adjacentCount < 2) {
         indestructiblePositions.add(pos);
       }
     }
 
-    return [
-      for (var i = 0; i < brickColors.length; i++)
-        for (var j = 1; j <= 5; j++)
-          Brick(
-            Vector2(
-              (i + 0.5) * brickWidth + (i + 1) * brickGutter,
-              (j + 2.0) * brickHeight + j * brickGutter,
-            ),
-            color,
-            hitsRequired: hits,
-            isIndestructible: indestructiblePositions.contains(i * 5 + (j - 1)),
-          ),
-    ];
-  }
-
-  // Level 4+: 60 bewegliche Bricks (6 Reihen x 10 Spalten) mit 12 unzerstörbaren
-  static List<Brick> _buildLevel4Plus(double width, Color color, math.Random rand) {
-    final movingBrickWidth = (width - (11 * brickGutter)) / 10;
-    final movingBrickHeight = brickHeight * 0.8;
-
-    final allPositions = <int>[];
-    for (var i = 0; i < 10; i++) {
-      for (var j = 0; j < 6; j++) {
-        allPositions.add(i * 6 + j);
-      }
-    }
-    allPositions.shuffle(rand);
-    
-    final indestructiblePositions = <int>{};
-    for (final pos in allPositions) {
-      if (indestructiblePositions.length >= 12) break;
-      
-      final row = pos ~/ 6;
-      final col = pos % 6;
-      var adjacentCount = 0;
-      
-      final neighbors = [
-        (row - 1) * 6 + col,
-        (row + 1) * 6 + col,
-        row * 6 + (col - 1),
-        row * 6 + (col + 1),
-      ];
-      
-      for (final neighbor in neighbors) {
-        if (indestructiblePositions.contains(neighbor)) {
-          adjacentCount++;
-        }
-      }
-      
-      if (adjacentCount < 2) {
-        indestructiblePositions.add(pos);
-      }
-    }
-
-    return [
-      for (var i = 0; i < 10; i++)
-        for (var j = 0; j < 6; j++)
-          Brick(
-            Vector2(
-              (i + 0.5) * movingBrickWidth + (i + 1) * brickGutter,
-              (j + 2.0) * movingBrickHeight + (j + 1) * brickGutter,
-            ),
-            color,
-            hitsRequired: 3,
-            customSize: Vector2(movingBrickWidth, movingBrickHeight),
-            isMoving: true,
-            moveSpeed: 100.0 + (j * 20.0),
-            isIndestructible: indestructiblePositions.contains(i * 6 + j),
-          ),
-    ];
+    return indestructiblePositions;
   }
 
   static Color _getContrastColor(Color baseColor) {

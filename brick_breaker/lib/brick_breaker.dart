@@ -327,8 +327,9 @@ class BrickBreaker extends FlameGame
   }
 
   @override
-  void onLoad() {
+  void onLoad() async {
     super.onLoad();
+    await LevelConfig.loadLevels();
     camera.viewfinder.anchor = Anchor.topLeft;
     world.add(PlayArea());
     world.add(ScoreDisplay());
