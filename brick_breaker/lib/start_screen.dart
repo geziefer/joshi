@@ -42,7 +42,7 @@ class StartScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-                  FutureBuilder<List<int>>(
+                  FutureBuilder<List<HighscoreEntry>>(
                     future: HighscoreManager.getHighscores(),
                     builder: (context, snapshot) {
                       final scores = snapshot.data ?? [];
@@ -55,7 +55,7 @@ class StartScreen extends StatelessWidget {
                           (i) => Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4),
                             child: Text(
-                              '${i + 1}. ${scores[i]} Punkte',
+                              '${i + 1}. ${scores[i].username} - ${scores[i].score} Punkte',
                               style: const TextStyle(fontSize: 18),
                             ),
                           ),

@@ -9,6 +9,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:practice_game/brick_breaker.dart';
 import 'package:practice_game/start_screen.dart';
+import 'package:practice_game/username_dialog.dart';
 
 void main() {
   runApp(const GameApp());
@@ -24,6 +25,7 @@ class GameApp extends StatefulWidget {
 class _GameAppState extends State<GameApp> {
   late BrickBreaker game;
   bool _gameStarted = false;
+  bool _showUsernameDialog = false;
 
   @override
   void initState() {
@@ -71,13 +73,22 @@ class _GameAppState extends State<GameApp> {
                   ),
                 ),
               )
-            : StartScreen(
-                onStart: () {
-                  setState(() {
-                    _gameStarted = true;
-                  });
-                },
-              ),
+            : _showUsernameDialog
+                ? UsernameDialog(
+                    onStart: () {
+                      setState(() {
+                        _showUsernameDialog = false;
+                        _gameStarted = true;
+                      });
+                    },
+                  )
+                : StartScreen(
+                    onStart: () {
+                      setState(() {
+                        _showUsernameDialog = true;
+                      });
+                    },
+                  ),
       ),
     );
   }

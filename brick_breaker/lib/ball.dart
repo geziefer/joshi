@@ -8,6 +8,7 @@ import 'package:practice_game/brick_breaker.dart';
 import 'package:practice_game/highscore_manager.dart';
 import 'package:practice_game/paddle.dart';
 import 'package:practice_game/play_area.dart';
+import 'package:practice_game/username_dialog.dart';
 
 class Ball extends CircleComponent
     with CollisionCallbacks, HasGameReference<BrickBreaker> {
@@ -97,7 +98,7 @@ class Ball extends CircleComponent
                 onComplete: () {
                   if (game.lives <= 1) {
                     if (currentScore > 0) {
-                      HighscoreManager.addScore(currentScore);
+                      HighscoreManager.addScore(currentUsername, currentScore);
                     }
                   }
                   game.loseLife();
