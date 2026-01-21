@@ -9,6 +9,7 @@ import 'package:practice_game/brick.dart';
 import 'package:practice_game/heart_power_up.dart';
 import 'package:practice_game/invincibility_border.dart';
 import 'package:practice_game/invincibility_power_up.dart';
+import 'package:practice_game/level.dart';
 import 'package:practice_game/level_display.dart';
 import 'package:practice_game/lives_display.dart';
 import 'package:practice_game/main.dart';
@@ -50,16 +51,16 @@ class BrickBreaker extends FlameGame
   double _invincibilityPowerUpTimer = 0;
   double _heartPowerUpTimer = 0;
 
-  int _level = 1;
+  int _level = 4;
   int get level => _level;
   bool get isInvincible => _isInvincible;
 
   double getInitialBallSpeed() {
-    return height / (2.8 - (_level * 0.3));
+    return LevelConfig.getBallSpeed(_level, height);
   }
 
   double getPreviousLevelSpeed() {
-    return height / (2.8 - ((_level - 1) * 0.3));
+    return LevelConfig.getBallSpeed(_level - 1, height);
   }
 
   void loseLife() {
@@ -99,7 +100,7 @@ class BrickBreaker extends FlameGame
             Ball(
               difficultyModifier: difficultyModifier,
               radius: ballRadius,
-              position: size / 2,
+              position: Vector2(width / 2, height * 0.5),
               velocity: Vector2(
                 (rand.nextDouble() - 0.5) * width,
                 height * 0.3,
@@ -167,7 +168,7 @@ class BrickBreaker extends FlameGame
       Ball(
         difficultyModifier: difficultyModifier,
         radius: ballRadius,
-        position: size / 2,
+        position: Vector2(width / 2, height * 0.5),
         velocity: Vector2(
           (rand.nextDouble() - 0.5) * width,
           height * 0.3,
@@ -181,7 +182,7 @@ class BrickBreaker extends FlameGame
     final newBall = Ball(
       difficultyModifier: difficultyModifier,
       radius: ballRadius,
-      position: size / 2,
+      position: Vector2(width / 2, height * 0.5),
       velocity: Vector2(
         (rand.nextDouble() - 0.5) * width,
         height * 0.3,
@@ -212,7 +213,7 @@ class BrickBreaker extends FlameGame
     // Ball beschleunigen bei Brick-Zerstörung (ab Level 2)
     if (_level >= 2) {
       final balls = world.children.query<Ball>();
-      final levelModifier = 1.0 + (_level * 0.01);
+      final levelModifier = LevelConfig.getBallSpeedModifier(_level);
 
       for (final ball in balls) {
         ball.velocity.setFrom(ball.velocity * levelModifier);
@@ -225,9 +226,10 @@ class BrickBreaker extends FlameGame
           _activeBonusBalls == 0 &&
           !_isInvincible) {
         _bricksDestroyed = 0;
-        _bricksUntilPowerUp = _level >= 4
-            ? rand.nextInt(11) + 10
-            : rand.nextInt(6) + 5;
+        _bricksUntilPowerUp = LevelConfig.getYellowPowerUpInterval(
+          _level,
+          rand,
+        );
         world.add(PowerUp(position: size / 2));
       }
     }
@@ -262,7 +264,7 @@ class BrickBreaker extends FlameGame
               isBonus: true,
               difficultyModifier: difficultyModifier,
               radius: ballRadius,
-              position: size / 2,
+              position: Vector2(width / 2, height * 0.5),
               velocity: Vector2(sharedDirection.x, sharedDirection.y),
             ),
           );
@@ -274,21 +276,21 @@ class BrickBreaker extends FlameGame
   void onBonusBallLost() {
     _activeBonusBalls--;
     if (_activeBonusBalls <= 0) {
+      _activeBonusBalls = 0;
       _bonusBallTimer = 0;
-      if (_mainBall != null) {
-        world.add(
-          Ball(
-            difficultyModifier: difficultyModifier,
-            radius: ballRadius,
-            position: size / 2,
-            velocity: Vector2(
-              (rand.nextDouble() - 0.5) * width,
-              height * 0.3,
-            ).normalized()..scale(getInitialBallSpeed()),
-          ),
-        );
-        _mainBall = null;
-      }
+      // Immer einen neuen Ball spawnen wenn alle Bonus-Bälle weg sind
+      world.add(
+        Ball(
+          difficultyModifier: difficultyModifier,
+          radius: ballRadius,
+          position: Vector2(width / 2, height * 0.5),
+          velocity: Vector2(
+            (rand.nextDouble() - 0.5) * width,
+            height * 0.3,
+          ).normalized()..scale(getInitialBallSpeed()),
+        ),
+      );
+      _mainBall = null;
     }
   }
 
@@ -344,9 +346,7 @@ class BrickBreaker extends FlameGame
     world.removeAll(world.children.query<HeartPowerUp>());
 
     _bricksDestroyed = 0;
-    _bricksUntilPowerUp = _level >= 4
-        ? rand.nextInt(11) + 10
-        : rand.nextInt(6) + 5;
+    _bricksUntilPowerUp = LevelConfig.getYellowPowerUpInterval(_level, rand);
     _mainBall = null;
     _activeBonusBalls = 0;
     _bonusBallTimer = 0;
@@ -360,7 +360,7 @@ class BrickBreaker extends FlameGame
         isBonus: false,
         difficultyModifier: difficultyModifier,
         radius: ballRadius,
-        position: size / 2,
+        position: Vector2(width / 2, height * 0.5),
         velocity: Vector2(
           (rand.nextDouble() - 0.5) * width,
           height * 0.3,
@@ -376,102 +376,11 @@ class BrickBreaker extends FlameGame
       ),
     );
 
-    final levelColor = brickColors[(_level - 1) % brickColors.length];
-    final hitsRequired = _level >= 2 ? 2 : 1;
-    final multiHitColor = _level >= 2
-        ? getContrastColor(levelColor)
-        : levelColor;
-
-    if (_level == 1) {
-      // Level 1: 10 große Bricks (2 Reihen x 5 Spalten)
-      final largeBrickWidth = (width - (6 * brickGutter)) / 5;
-      final largeBrickHeight = brickHeight * 3;
-
-      world.addAll([
-        for (var i = 0; i < 5; i++)
-          for (var j = 0; j < 2; j++)
-            Brick(
-              Vector2(
-                (i + 0.5) * largeBrickWidth + (i + 1) * brickGutter,
-                (j + 2.0) * largeBrickHeight + (j + 1) * brickGutter,
-              ),
-              levelColor,
-              hitsRequired: hitsRequired,
-              customSize: Vector2(largeBrickWidth, largeBrickHeight),
-            ),
-      ]);
-    } else if (_level == 2) {
-      // Level 2: 24 Bricks (4 Reihen x 6 Spalten)
-      final mediumBrickWidth = (width - (7 * brickGutter)) / 6;
-      final mediumBrickHeight = brickHeight * 1.25;
-
-      world.addAll([
-        for (var i = 0; i < 6; i++)
-          for (var j = 0; j < 4; j++)
-            Brick(
-              Vector2(
-                (i + 0.5) * mediumBrickWidth + (i + 1) * brickGutter,
-                (j + 2.0) * mediumBrickHeight + (j + 1) * brickGutter,
-              ),
-              multiHitColor,
-              hitsRequired: hitsRequired,
-              customSize: Vector2(mediumBrickWidth, mediumBrickHeight),
-            ),
-      ]);
-    } else if (_level == 3) {
-      // Level 3: 50 Bricks mit 5 zufälligen unzerstörbaren
-      final allPositions = <int>[];
-      for (var i = 0; i < brickColors.length; i++) {
-        for (var j = 1; j <= 5; j++) {
-          allPositions.add(i * 5 + j);
-        }
-      }
-      allPositions.shuffle(rand);
-      final indestructiblePositions = allPositions.take(5).toSet();
-
-      world.addAll([
-        for (var i = 0; i < brickColors.length; i++)
-          for (var j = 1; j <= 5; j++)
-            Brick(
-              Vector2(
-                (i + 0.5) * brickWidth + (i + 1) * brickGutter,
-                (j + 2.0) * brickHeight + j * brickGutter,
-              ),
-              multiHitColor,
-              hitsRequired: hitsRequired,
-              isIndestructible: indestructiblePositions.contains(i * 5 + j),
-            ),
-      ]);
-    } else {
-      // Level 4+: 60 bewegliche Bricks (6 Reihen x 10 Spalten)
-      final movingBrickWidth = (width - (11 * brickGutter)) / 10;
-      final movingBrickHeight = brickHeight * 0.8;
-
-      world.addAll([
-        for (var i = 0; i < 10; i++)
-          for (var j = 0; j < 6; j++)
-            Brick(
-              Vector2(
-                (i + 0.5) * movingBrickWidth + (i + 1) * brickGutter,
-                (j + 2.0) * movingBrickHeight + (j + 1) * brickGutter,
-              ),
-              multiHitColor,
-              hitsRequired: 3,
-              customSize: Vector2(movingBrickWidth, movingBrickHeight),
-              isMoving: true,
-              moveSpeed: 100.0 + (j * 20.0),
-            ),
-      ]);
-    }
+    world.addAll(LevelConfig.buildLevel(_level, width, height, rand));
   }
 
   void nextLevel() {
     _level++;
     startGame();
-  }
-
-  Color getContrastColor(Color baseColor) {
-    final brightness = baseColor.computeLuminance();
-    return brightness > 0.5 ? Colors.black : Colors.orange;
   }
 }

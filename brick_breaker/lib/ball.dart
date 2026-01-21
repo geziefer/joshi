@@ -140,8 +140,8 @@ class Ball extends CircleComponent
         game.onBrickDestroyed(other.position);
       }
       
-      // Level 4+: Brick-Hit Counter für alle Bälle
-      if (game.level >= 4) {
+      // Level 4+: Brick-Hit Counter für alle Bälle (außer unzerstörbare Bricks)
+      if (game.level >= 4 && !other.isIndestructible) {
         _brickHitsWithoutPaddle++;
         
         if (_brickHitsWithoutPaddle == 2) {
