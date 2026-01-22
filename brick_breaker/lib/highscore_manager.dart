@@ -1,7 +1,4 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:path_provider/path_provider.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HighscoreEntry {
@@ -26,7 +23,7 @@ class HighscoreEntry {
 
 class HighscoreManager {
   static const String _key = 'highscores';
-  static const String _globalKey = 'global_highscores';
+  static final _database = FirebaseDatabase.instance.ref();
 
   static Future<List<HighscoreEntry>> getHighscores() async {
     try {
@@ -44,7 +41,6 @@ class HighscoreManager {
         }
       }
       
-      // Speichere nur valide Scores zurück
       if (validScores.length != scores.length) {
         await prefs.setStringList(_key, validScores.map((s) => s.toJson()).toList());
       }
@@ -52,50 +48,35 @@ class HighscoreManager {
       return validScores;
     } catch (e) {
       print('Error loading highscores: $e');
-      // Lösche korrupte Daten komplett
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.remove(_key);
-      } catch (_) {}
       return [];
     }
   }
 
   static Future<bool> usernameExistsInGlobal(String username) async {
-    final globalScores = await getGlobalHighscores();
-    return globalScores.any((entry) => entry.username == username);
+    try {
+      final snapshot = await _database.child('highscores').get();
+      if (!snapshot.exists) return false;
+      
+      final data = snapshot.value as Map<dynamic, dynamic>;
+      return data.values.any((entry) => entry['username'] == username);
+    } catch (e) {
+      return false;
+    }
   }
 
   static Future<List<HighscoreEntry>> getGlobalHighscores() async {
     try {
-      if (kIsWeb) {
-        final prefs = await SharedPreferences.getInstance();
-        final jsonString = prefs.getString(_globalKey);
-        if (jsonString == null) return [];
+      final snapshot = await _database.child('highscores').get();
+      if (!snapshot.exists) return [];
 
-        final data = json.decode(jsonString);
-        final allScores = (data['globalHighscores'] as List)
-            .map((e) => HighscoreEntry.fromMap(e))
-            .toList();
+      final data = snapshot.value as Map<dynamic, dynamic>;
+      final allScores = data.values
+          .map((e) => HighscoreEntry.fromMap(Map<String, dynamic>.from(e)))
+          .toList();
 
-        return _filterBestScorePerUsername(allScores);
-      } else {
-        final directory = await getApplicationDocumentsDirectory();
-        final file = File('${directory.path}/global_highscores.json');
-
-        if (!await file.exists()) {
-          return [];
-        }
-
-        final jsonString = await file.readAsString();
-        final data = json.decode(jsonString);
-        final allScores = (data['globalHighscores'] as List)
-            .map((e) => HighscoreEntry.fromMap(e))
-            .toList();
-
-        return _filterBestScorePerUsername(allScores);
-      }
+      return _filterBestScorePerUsername(allScores);
     } catch (e) {
+      print('Error loading global highscores: $e');
       return [];
     }
   }
@@ -126,62 +107,22 @@ class HighscoreManager {
       if (scores.length > 10) scores.removeRange(10, scores.length);
 
       await prefs.setStringList(_key, scores.map((s) => s.toJson()).toList());
-      await _addGlobalScore(username, score);
+      await _addToFirebase(username, score);
     } catch (e) {
       print('Error in addScore: $e');
       rethrow;
     }
   }
 
-  static Future<void> _addGlobalScore(String username, int score) async {
+  static Future<void> _addToFirebase(String username, int score) async {
     try {
-      if (kIsWeb) {
-        final prefs = await SharedPreferences.getInstance();
-        final jsonString = prefs.getString(_globalKey);
-
-        List<HighscoreEntry> scores = [];
-        if (jsonString != null && jsonString.isNotEmpty && jsonString != 'undefined') {
-          try {
-            final data = json.decode(jsonString);
-            if (data != null && data['globalHighscores'] != null) {
-              scores = (data['globalHighscores'] as List)
-                  .map((e) => HighscoreEntry.fromMap(e))
-                  .toList();
-            }
-          } catch (e) {
-            print('Error parsing existing scores: $e');
-            scores = [];
-          }
-        }
-
-        scores.add(HighscoreEntry(username, score));
-
-        final data = {
-          'globalHighscores': scores.map((s) => s.toMap()).toList(),
-        };
-        await prefs.setString(_globalKey, json.encode(data));
-      } else {
-        final directory = await getApplicationDocumentsDirectory();
-        final file = File('${directory.path}/global_highscores.json');
-
-        List<HighscoreEntry> scores = [];
-        if (await file.exists()) {
-          final jsonString = await file.readAsString();
-          final data = json.decode(jsonString);
-          scores = (data['globalHighscores'] as List)
-              .map((e) => HighscoreEntry.fromMap(e))
-              .toList();
-        }
-
-        scores.add(HighscoreEntry(username, score));
-
-        final data = {
-          'globalHighscores': scores.map((s) => s.toMap()).toList(),
-        };
-        await file.writeAsString(json.encode(data));
-      }
+      await _database.child('highscores').push().set({
+        'username': username,
+        'score': score,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      });
     } catch (e) {
-      // Fehler ignorieren
+      print('Error adding to Firebase: $e');
     }
   }
 }
