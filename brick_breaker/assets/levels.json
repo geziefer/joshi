@@ -43,7 +43,7 @@
       "hitsRequired": 2,
       "brickWidthMultiplier": 1.0,
       "brickHeightMultiplier": 1.0,
-      "indestructibleCount": 5,
+      "indestructibleCount": 6,
       "isMoving": false,
       "moveSpeedBase": 0,
       "moveSpeedIncrement": 0,

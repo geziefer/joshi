@@ -155,7 +155,7 @@ class LevelConfig {
         }
       }
 
-      if (adjacentCount < 2) {
+      if (adjacentCount == 0) {
         indestructiblePositions.add(pos);
       }
     }

@@ -57,7 +57,7 @@ class BrickBreaker extends FlameGame
 
   bool _isPaddleFrozen = false;
   bool get isPaddleFrozen => _isPaddleFrozen;
-  
+
   bool _checkForLevelComplete = false;
 
   double getInitialBallSpeed() {
@@ -93,7 +93,7 @@ class BrickBreaker extends FlameGame
           .query<Brick>()
           .where((b) => !b.isIndestructible)
           .length;
-      
+
       if (remainingBricks == 0) {
         _checkForLevelComplete = false;
         _level++;
