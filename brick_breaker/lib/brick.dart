@@ -66,15 +66,6 @@ class Brick extends RectangleComponent
         game.incScore();
       }
       game.onBrickDestroyed(position);
-
-      final remainingDestructibleBricks = game.world.children
-          .query<Brick>()
-          .where((b) => !b.isIndestructible)
-          .length;
-      
-      if (remainingDestructibleBricks == 1) {
-        game.nextLevel();
-      }
     } else {
       paint.color = Color.lerp(
         _baseColor,

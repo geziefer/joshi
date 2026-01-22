@@ -24,6 +24,8 @@ class Paddle extends PositionComponent
   void update(double dt) {
     super.update(dt);
 
+    if (game.isPaddleFrozen) return;
+
     final keysPressed = HardwareKeyboard.instance.logicalKeysPressed;
     if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
         keysPressed.contains(LogicalKeyboardKey.keyA)) {
@@ -51,7 +53,7 @@ class Paddle extends PositionComponent
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
-    if (isRemoved) return;
+    if (isRemoved || game.isPaddleFrozen) return;
     super.onDragUpdate(event);
     position.x = (position.x + event.localDelta.x).clamp(
       width / 2,

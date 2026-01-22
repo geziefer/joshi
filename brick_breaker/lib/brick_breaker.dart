@@ -55,6 +55,11 @@ class BrickBreaker extends FlameGame
   int get level => _level;
   bool get isInvincible => _isInvincible;
 
+  bool _isPaddleFrozen = false;
+  bool get isPaddleFrozen => _isPaddleFrozen;
+  
+  bool _checkForLevelComplete = false;
+
   double getInitialBallSpeed() {
     return LevelConfig.getBallSpeed(_level, height);
   }
@@ -81,6 +86,21 @@ class BrickBreaker extends FlameGame
   @override
   void update(double dt) {
     super.update(dt);
+
+    // Prüfe Level-Abschluss
+    if (_checkForLevelComplete) {
+      final remainingBricks = world.children
+          .query<Brick>()
+          .where((b) => !b.isIndestructible)
+          .length;
+      
+      if (remainingBricks == 0) {
+        _checkForLevelComplete = false;
+        _level++;
+        startGame();
+        return;
+      }
+    }
 
     if (_activeBonusBalls > 0) {
       _bonusBallTimer += dt;
@@ -233,6 +253,9 @@ class BrickBreaker extends FlameGame
         world.add(PowerUp(position: size / 2));
       }
     }
+
+    // Markiere für Level-Abschluss-Prüfung im nächsten Frame
+    _checkForLevelComplete = true;
   }
 
   void activatePowerUp() {
@@ -335,10 +358,10 @@ class BrickBreaker extends FlameGame
     world.add(ScoreDisplay());
     world.add(LivesDisplay());
     world.add(LevelDisplay());
-    startGame();
   }
 
-  void startGame() {
+  void startGame({bool withCountdown = false}) async {
+    _checkForLevelComplete = false;
     world.removeAll(world.children.query<Ball>());
     world.removeAll(world.children.query<Paddle>());
     world.removeAll(world.children.query<Brick>());
@@ -356,6 +379,60 @@ class BrickBreaker extends FlameGame
     _invincibilityPowerUpTimer = 0;
     _heartPowerUpTimer = 0;
 
+    // Paddle sofort hinzufügen
+    final paddle = Paddle(
+      size: Vector2(paddleWidth, paddleHeight),
+      cornerRadius: const Radius.circular(ballRadius / 2),
+      position: Vector2(width / 2, height * 0.95),
+    );
+    world.add(paddle);
+
+    // Bricks hinzufügen
+    world.addAll(LevelConfig.buildLevel(_level, width, height, rand));
+
+    if (withCountdown) {
+      _isPaddleFrozen = true;
+
+      // Countdown: 3, 2, 1, GO
+      for (var i = 3; i > 0; i--) {
+        final countText = TextComponent(
+          text: '$i',
+          textRenderer: TextPaint(
+            style: const TextStyle(
+              fontSize: 120,
+              color: Color(0xff1e6091),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          position: Vector2(width / 2, height / 2),
+          anchor: Anchor.center,
+        );
+        world.add(countText);
+        await Future.delayed(const Duration(seconds: 1));
+        countText.removeFromParent();
+      }
+
+      // GO!
+      final goText = TextComponent(
+        text: 'GO!',
+        textRenderer: TextPaint(
+          style: const TextStyle(
+            fontSize: 120,
+            color: Color(0xff43aa8b),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        position: Vector2(width / 2, height / 2),
+        anchor: Anchor.center,
+      );
+      world.add(goText);
+      await Future.delayed(const Duration(milliseconds: 800));
+      goText.removeFromParent();
+
+      _isPaddleFrozen = false;
+    }
+
+    // Ball spawnen
     world.add(
       Ball(
         isBonus: false,
@@ -368,16 +445,6 @@ class BrickBreaker extends FlameGame
         ).normalized()..scale(getInitialBallSpeed()),
       ),
     );
-
-    world.add(
-      Paddle(
-        size: Vector2(paddleWidth, paddleHeight),
-        cornerRadius: const Radius.circular(ballRadius / 2),
-        position: Vector2(width / 2, height * 0.95),
-      ),
-    );
-
-    world.addAll(LevelConfig.buildLevel(_level, width, height, rand));
   }
 
   void nextLevel() {

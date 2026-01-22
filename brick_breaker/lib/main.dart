@@ -144,10 +144,12 @@ class _GameAppState extends State<GameApp> {
       case 'menu':
         return StartScreen(
           username: _currentUsername,
-          onStart: () {
+          onStart: () async {
             setState(() {
               _gameStarted = true;
             });
+            await Future.delayed(const Duration(milliseconds: 50));
+            game.startGame(withCountdown: true);
           },
           onBack: () {
             setState(() {
