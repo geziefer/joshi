@@ -9,8 +9,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:practice_game/brick_breaker.dart';
+import 'package:practice_game/login_screen.dart';
+import 'package:practice_game/register_dialog.dart';
+import 'package:practice_game/login_dialog.dart';
 import 'package:practice_game/start_screen.dart';
-import 'package:practice_game/username_dialog.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,7 +43,8 @@ class GameApp extends StatefulWidget {
 class _GameAppState extends State<GameApp> {
   late BrickBreaker game;
   bool _gameStarted = false;
-  bool _showUsernameDialog = false;
+  String _currentScreen = 'login'; // 'login', 'register', 'loginDialog', 'menu'
+  String _currentUsername = '';
 
   @override
   void initState() {
@@ -52,6 +55,7 @@ class _GameAppState extends State<GameApp> {
   void _onGameOver() {
     setState(() {
       _gameStarted = false;
+      _currentScreen = 'menu';
     });
     Future.delayed(const Duration(milliseconds: 100), () {
       setState(() {
@@ -89,25 +93,71 @@ class _GameAppState extends State<GameApp> {
                   ),
                 ),
               )
-            : _showUsernameDialog
-            ? UsernameDialog(
-                onStart: () {
-                  setState(() {
-                    _showUsernameDialog = false;
-                    _gameStarted = true;
-                  });
-                },
-              )
-            : StartScreen(
-                key: ValueKey(_gameStarted), // Erzwingt Neuaufbau
-                onStart: () {
-                  setState(() {
-                    _showUsernameDialog = true;
-                  });
-                },
-              ),
+            : _buildCurrentScreen(),
       ),
     );
+  }
+
+  Widget _buildCurrentScreen() {
+    switch (_currentScreen) {
+      case 'login':
+        return LoginScreen(
+          onRegister: () {
+            setState(() {
+              _currentScreen = 'register';
+            });
+          },
+          onLogin: () {
+            setState(() {
+              _currentScreen = 'loginDialog';
+            });
+          },
+        );
+      case 'register':
+        return RegisterDialog(
+          onRegister: (username) {
+            setState(() {
+              _currentUsername = username;
+              _currentScreen = 'menu';
+            });
+          },
+          onCancel: () {
+            setState(() {
+              _currentScreen = 'login';
+            });
+          },
+        );
+      case 'loginDialog':
+        return LoginDialog(
+          onLogin: (username) {
+            setState(() {
+              _currentUsername = username;
+              _currentScreen = 'menu';
+            });
+          },
+          onCancel: () {
+            setState(() {
+              _currentScreen = 'login';
+            });
+          },
+        );
+      case 'menu':
+        return StartScreen(
+          username: _currentUsername,
+          onStart: () {
+            setState(() {
+              _gameStarted = true;
+            });
+          },
+          onBack: () {
+            setState(() {
+              _currentScreen = 'login';
+            });
+          },
+        );
+      default:
+        return Container();
+    }
   }
 }
 

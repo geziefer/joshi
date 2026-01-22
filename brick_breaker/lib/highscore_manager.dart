@@ -92,6 +92,21 @@ class HighscoreManager {
     });
   }
 
+  static Stream<List<HighscoreEntry>> watchUserHighscores(String username) {
+    return _database.child('highscores').onValue.map((event) {
+      if (!event.snapshot.exists) return <HighscoreEntry>[];
+
+      final data = event.snapshot.value as Map<dynamic, dynamic>;
+      final userScores = data.values
+          .map((e) => HighscoreEntry.fromMap(Map<String, dynamic>.from(e)))
+          .where((entry) => entry.username == username)
+          .toList();
+
+      userScores.sort((a, b) => b.score.compareTo(a.score));
+      return userScores.take(10).toList();
+    });
+  }
+
   static List<HighscoreEntry> _filterBestScorePerUsername(
     List<HighscoreEntry> scores,
   ) {
