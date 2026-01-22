@@ -29,9 +29,36 @@ class HighscoreManager {
   static const String _globalKey = 'global_highscores';
 
   static Future<List<HighscoreEntry>> getHighscores() async {
-    final prefs = await SharedPreferences.getInstance();
-    final scores = prefs.getStringList(_key) ?? [];
-    return scores.map((s) => HighscoreEntry.fromJson(s)).toList();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final scores = prefs.getStringList(_key) ?? [];
+      final validScores = <HighscoreEntry>[];
+      
+      for (final s in scores) {
+        if (s != null && s.isNotEmpty && s != 'undefined') {
+          try {
+            validScores.add(HighscoreEntry.fromJson(s));
+          } catch (e) {
+            print('Removing corrupt score: $s');
+          }
+        }
+      }
+      
+      // Speichere nur valide Scores zurück
+      if (validScores.length != scores.length) {
+        await prefs.setStringList(_key, validScores.map((s) => s.toJson()).toList());
+      }
+      
+      return validScores;
+    } catch (e) {
+      print('Error loading highscores: $e');
+      // Lösche korrupte Daten komplett
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove(_key);
+      } catch (_) {}
+      return [];
+    }
   }
 
   static Future<bool> usernameExistsInGlobal(String username) async {
@@ -91,14 +118,19 @@ class HighscoreManager {
   }
 
   static Future<void> addScore(String username, int score) async {
-    final prefs = await SharedPreferences.getInstance();
-    final scores = await getHighscores();
-    scores.add(HighscoreEntry(username, score));
-    scores.sort((a, b) => b.score.compareTo(a.score));
-    if (scores.length > 10) scores.removeRange(10, scores.length);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final scores = await getHighscores();
+      scores.add(HighscoreEntry(username, score));
+      scores.sort((a, b) => b.score.compareTo(a.score));
+      if (scores.length > 10) scores.removeRange(10, scores.length);
 
-    await prefs.setStringList(_key, scores.map((s) => s.toJson()).toList());
-    await _addGlobalScore(username, score);
+      await prefs.setStringList(_key, scores.map((s) => s.toJson()).toList());
+      await _addGlobalScore(username, score);
+    } catch (e) {
+      print('Error in addScore: $e');
+      rethrow;
+    }
   }
 
   static Future<void> _addGlobalScore(String username, int score) async {
@@ -108,11 +140,18 @@ class HighscoreManager {
         final jsonString = prefs.getString(_globalKey);
 
         List<HighscoreEntry> scores = [];
-        if (jsonString != null) {
-          final data = json.decode(jsonString);
-          scores = (data['globalHighscores'] as List)
-              .map((e) => HighscoreEntry.fromMap(e))
-              .toList();
+        if (jsonString != null && jsonString.isNotEmpty && jsonString != 'undefined') {
+          try {
+            final data = json.decode(jsonString);
+            if (data != null && data['globalHighscores'] != null) {
+              scores = (data['globalHighscores'] as List)
+                  .map((e) => HighscoreEntry.fromMap(e))
+                  .toList();
+            }
+          } catch (e) {
+            print('Error parsing existing scores: $e');
+            scores = [];
+          }
         }
 
         scores.add(HighscoreEntry(username, score));

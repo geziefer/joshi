@@ -18,7 +18,9 @@ class Ball extends CircleComponent
     required double radius,
     required this.difficultyModifier,
     this.isBonus = false,
-  }) : _originalColor = isBonus ? const Color(0xfff94144) : const Color(0xff1e6091),
+  }) : _originalColor = isBonus
+           ? const Color(0xfff94144)
+           : const Color(0xff1e6091),
        super(
          radius: radius,
          anchor: Anchor.center,
@@ -40,16 +42,16 @@ class Ball extends CircleComponent
   @override
   void update(double dt) {
     super.update(dt);
-    
+
     // Geschwindigkeit begrenzen
     final currentSpeed = velocity.length;
     if (currentSpeed > maxSpeed) {
       velocity.normalize();
       velocity.scale(maxSpeed);
     }
-    
+
     position += velocity * dt;
-    
+
     // Sicherheits-Check: Ball innerhalb halten
     if (position.y < 0) {
       position.y = 0;
@@ -81,11 +83,16 @@ class Ball extends CircleComponent
       } else if (intersectionPoints.first.y >= game.height) {
         if (_isRemoving) return;
         _isRemoving = true;
-        
+
         if (isBonus) {
-          add(RemoveEffect(delay: 0.35, onComplete: () {
-            game.onBonusBallLost();
-          }));
+          add(
+            RemoveEffect(
+              delay: 0.35,
+              onComplete: () {
+                game.onBonusBallLost();
+              },
+            ),
+          );
         } else {
           // Hauptball durchgefallen
           final wasInvincible = game.isInvincible;
@@ -95,11 +102,19 @@ class Ball extends CircleComponent
             add(
               RemoveEffect(
                 delay: 0.35,
-                onComplete: () {
+                onComplete: () async {
                   if (game.lives <= 1) {
                     if (currentScore > 0) {
-                      print('Saving score: $currentUsername - $currentScore');
-                      HighscoreManager.addScore(currentUsername, currentScore);
+                      try {
+                        print('Saving score: $currentUsername - $currentScore');
+
+                        await HighscoreManager.addScore(
+                          currentUsername,
+                          currentScore,
+                        );
+                      } catch (e) {
+                        print('Error saving score: $e');
+                      }
                     }
                   }
                   game.loseLife();
@@ -108,9 +123,14 @@ class Ball extends CircleComponent
             );
           } else {
             // Unsterblich: kein Leben abziehen, aber respawnen
-            add(RemoveEffect(delay: 0.35, onComplete: () {
-              game.respawnBallWithoutPowerUpCollection();
-            }));
+            add(
+              RemoveEffect(
+                delay: 0.35,
+                onComplete: () {
+                  game.respawnBallWithoutPowerUpCollection();
+                },
+              ),
+            );
           }
         }
       }
@@ -119,7 +139,7 @@ class Ball extends CircleComponent
       velocity.x =
           velocity.x +
           (position.x - other.position.x) / other.size.x * game.width * 0.3;
-      
+
       // Counter zurücksetzen und Farbe zurücksetzen
       _brickHitsWithoutPaddle = 0;
       paint.color = _originalColor;
@@ -141,11 +161,11 @@ class Ball extends CircleComponent
       if (!isBonus) {
         game.onBrickDestroyed(other.position);
       }
-      
+
       // Level 4+: Brick-Hit Counter für alle Bälle (außer unzerstörbare Bricks)
       if (game.level >= 4 && !other.isIndestructible) {
         _brickHitsWithoutPaddle++;
-        
+
         if (_brickHitsWithoutPaddle == 2) {
           // Gelb
           paint.color = const Color(0xffffff00);
@@ -156,17 +176,27 @@ class Ball extends CircleComponent
           // Kaputt gehen
           if (_isRemoving) return;
           _isRemoving = true;
-          
+
           if (isBonus) {
             // Bonus Ball: einfach entfernen
-            add(RemoveEffect(delay: 0.1, onComplete: () {
-              game.onBonusBallLost();
-            }));
+            add(
+              RemoveEffect(
+                delay: 0.1,
+                onComplete: () {
+                  game.onBonusBallLost();
+                },
+              ),
+            );
           } else {
             // Haupt Ball: entfernen und neuen blauen Ball spawnen
-            add(RemoveEffect(delay: 0.1, onComplete: () {
-              game.respawnBallWithoutPowerUpCollection();
-            }));
+            add(
+              RemoveEffect(
+                delay: 0.1,
+                onComplete: () {
+                  game.respawnBallWithoutPowerUpCollection();
+                },
+              ),
+            );
           }
         }
       }
