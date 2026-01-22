@@ -106,14 +106,12 @@ class Ball extends CircleComponent
                   if (game.lives <= 1) {
                     if (currentScore > 0) {
                       try {
-                        print('Saving score: $currentUsername - $currentScore');
-
                         await HighscoreManager.addScore(
                           currentUsername,
                           currentScore,
                         );
                       } catch (e) {
-                        print('Error saving score: $e');
+                        // Error saving score
                       }
                     }
                   }

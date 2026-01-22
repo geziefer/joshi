@@ -100,6 +100,8 @@ class _StartScreenState extends State<StartScreen> {
   }
 
   Widget _buildHighscoreTable(String title, Future<List<HighscoreEntry>> scoresFuture) {
+    final isGlobal = title.contains('Global');
+    
     return Container(
       width: 350,
       padding: const EdgeInsets.all(20),
@@ -114,27 +116,49 @@ class _StartScreenState extends State<StartScreen> {
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          FutureBuilder<List<HighscoreEntry>>(
-            future: scoresFuture,
-            builder: (context, snapshot) {
-              final scores = snapshot.data ?? [];
-              if (scores.isEmpty) {
-                return const Text('Noch keine Highscores');
-              }
-              return Column(
-                children: List.generate(
-                  scores.length,
-                  (i) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Text(
-                      '${i + 1}. ${scores[i].username} - ${scores[i].score}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ),
+          isGlobal
+              ? StreamBuilder<List<HighscoreEntry>>(
+                  stream: HighscoreManager.watchGlobalHighscores(),
+                  builder: (context, snapshot) {
+                    final scores = snapshot.data ?? [];
+                    if (scores.isEmpty) {
+                      return const Text('Noch keine Highscores');
+                    }
+                    return Column(
+                      children: List.generate(
+                        scores.length,
+                        (i) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Text(
+                            '${i + 1}. ${scores[i].username} - ${scores[i].score}',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                )
+              : FutureBuilder<List<HighscoreEntry>>(
+                  future: scoresFuture,
+                  builder: (context, snapshot) {
+                    final scores = snapshot.data ?? [];
+                    if (scores.isEmpty) {
+                      return const Text('Noch keine Highscores');
+                    }
+                    return Column(
+                      children: List.generate(
+                        scores.length,
+                        (i) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Text(
+                            '${i + 1}. ${scores[i].username} - ${scores[i].score}',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ],
       ),
     );

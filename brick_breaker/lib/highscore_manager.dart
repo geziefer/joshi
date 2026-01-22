@@ -32,11 +32,11 @@ class HighscoreManager {
       final validScores = <HighscoreEntry>[];
       
       for (final s in scores) {
-        if (s != null && s.isNotEmpty && s != 'undefined') {
+        if (s.isNotEmpty && s != 'undefined') {
           try {
             validScores.add(HighscoreEntry.fromJson(s));
           } catch (e) {
-            print('Removing corrupt score: $s');
+            // Removing corrupt score
           }
         }
       }
@@ -47,7 +47,6 @@ class HighscoreManager {
       
       return validScores;
     } catch (e) {
-      print('Error loading highscores: $e');
       return [];
     }
   }
@@ -76,9 +75,21 @@ class HighscoreManager {
 
       return _filterBestScorePerUsername(allScores);
     } catch (e) {
-      print('Error loading global highscores: $e');
       return [];
     }
+  }
+
+  static Stream<List<HighscoreEntry>> watchGlobalHighscores() {
+    return _database.child('highscores').onValue.map((event) {
+      if (!event.snapshot.exists) return <HighscoreEntry>[];
+
+      final data = event.snapshot.value as Map<dynamic, dynamic>;
+      final allScores = data.values
+          .map((e) => HighscoreEntry.fromMap(Map<String, dynamic>.from(e)))
+          .toList();
+
+      return _filterBestScorePerUsername(allScores);
+    });
   }
 
   static List<HighscoreEntry> _filterBestScorePerUsername(
@@ -109,7 +120,6 @@ class HighscoreManager {
       await prefs.setStringList(_key, scores.map((s) => s.toJson()).toList());
       await _addToFirebase(username, score);
     } catch (e) {
-      print('Error in addScore: $e');
       rethrow;
     }
   }
@@ -122,7 +132,7 @@ class HighscoreManager {
         'timestamp': DateTime.now().millisecondsSinceEpoch,
       });
     } catch (e) {
-      print('Error adding to Firebase: $e');
+      // Error adding to Firebase
     }
   }
 }
