@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:practice_game/username_dialog.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginDialog extends StatefulWidget {
   final Function(String) onLogin;
@@ -16,20 +16,54 @@ class LoginDialog extends StatefulWidget {
 }
 
 class _LoginDialogState extends State<LoginDialog> {
-  final _controller = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  String? _errorMessage;
+  bool _isLoading = false;
 
   @override
   void dispose() {
-    _controller.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  void _login() {
-    final username = _controller.text.trim();
-    if (username.isEmpty) return;
-    
-    currentUsername = username;
-    widget.onLogin(username);
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _errorMessage = 'Bitte fülle alle Felder aus';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final name = FirebaseAuth.instance.currentUser?.displayName ?? 'User';
+      if (mounted) widget.onLogin(name);
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _errorMessage = e.code == 'user-not-found' || e.code == 'wrong-password'
+            ? 'Falsche Email oder Passwort'
+            : 'Fehler: ${e.message}';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -59,13 +93,31 @@ class _LoginDialogState extends State<LoginDialog> {
               ),
               const SizedBox(height: 24),
               TextField(
-                controller: _controller,
+                controller: _emailController,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  hintText: 'Dein Name',
+                  labelText: 'Email',
                 ),
-                maxLength: 20,
+                keyboardType: TextInputType.emailAddress,
+                onChanged: (_) => setState(() => _errorMessage = null),
               ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Passwort',
+                ),
+                obscureText: true,
+                onChanged: (_) => setState(() => _errorMessage = null),
+              ),
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red, fontSize: 14),
+                ),
+              ],
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -84,7 +136,7 @@ class _LoginDialogState extends State<LoginDialog> {
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton(
-                    onPressed: _login,
+                    onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xff43aa8b),
                       foregroundColor: Colors.white,
@@ -93,7 +145,13 @@ class _LoginDialogState extends State<LoginDialog> {
                         vertical: 16,
                       ),
                     ),
-                    child: const Text('ANMELDEN'),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('ANMELDEN'),
                   ),
                 ],
               ),

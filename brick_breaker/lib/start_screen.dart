@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:practice_game/highscore_manager.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class StartScreen extends StatefulWidget {
   final VoidCallback onStart;
@@ -113,9 +114,12 @@ class _StartScreenState extends State<StartScreen> {
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: widget.onBack,
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+                    widget.onBack();
+                  },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey,
+                    backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 48,
@@ -126,7 +130,7 @@ class _StartScreenState extends State<StartScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  child: const Text('ZURÜCK'),
+                  child: const Text('AUSLOGGEN'),
                 ),
               ],
             ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:practice_game/highscore_manager.dart';
-import 'package:practice_game/username_dialog.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterDialog extends StatefulWidget {
   final Function(String) onRegister;
@@ -17,33 +16,58 @@ class RegisterDialog extends StatefulWidget {
 }
 
 class _RegisterDialogState extends State<RegisterDialog> {
-  final _controller = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
   String? _errorMessage;
+  bool _isLoading = false;
 
   @override
   void dispose() {
-    _controller.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
   Future<void> _register() async {
-    final username = _controller.text.trim();
-    if (username.isEmpty) {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final name = _nameController.text.trim();
+
+    if (email.isEmpty || password.isEmpty || name.isEmpty) {
       setState(() {
-        _errorMessage = 'Bitte gib einen Namen ein';
+        _errorMessage = 'Bitte fülle alle Felder aus';
       });
       return;
     }
 
-    final exists = await HighscoreManager.usernameExistsInGlobal(username);
-    
-    if (exists) {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      await FirebaseAuth.instance.currentUser?.updateDisplayName(name);
+      if (mounted) widget.onRegister(name);
+    } on FirebaseAuthException catch (e) {
       setState(() {
-        _errorMessage = 'Benutzername gibt es bereits';
+        _errorMessage = e.code == 'email-already-in-use'
+            ? 'Email bereits registriert'
+            : e.code == 'weak-password'
+            ? 'Passwort zu schwach'
+            : 'Fehler: ${e.message}';
       });
-    } else {
-      currentUsername = username;
-      widget.onRegister(username);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -74,19 +98,32 @@ class _RegisterDialogState extends State<RegisterDialog> {
               ),
               const SizedBox(height: 24),
               TextField(
-                controller: _controller,
+                controller: _nameController,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  hintText: 'Dein Name',
+                  labelText: 'Name',
                 ),
-                maxLength: 20,
-                onChanged: (_) {
-                  if (_errorMessage != null) {
-                    setState(() {
-                      _errorMessage = null;
-                    });
-                  }
-                },
+                onChanged: (_) => setState(() => _errorMessage = null),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Email',
+                ),
+                keyboardType: TextInputType.emailAddress,
+                onChanged: (_) => setState(() => _errorMessage = null),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Passwort',
+                ),
+                obscureText: true,
+                onChanged: (_) => setState(() => _errorMessage = null),
               ),
               if (_errorMessage != null) ...[
                 const SizedBox(height: 8),
@@ -113,7 +150,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton(
-                    onPressed: _register,
+                    onPressed: _isLoading ? null : _register,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xff1e6091),
                       foregroundColor: Colors.white,
@@ -122,7 +159,13 @@ class _RegisterDialogState extends State<RegisterDialog> {
                         vertical: 16,
                       ),
                     ),
-                    child: const Text('REGISTRIEREN'),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('REGISTRIEREN'),
                   ),
                 ],
               ),
