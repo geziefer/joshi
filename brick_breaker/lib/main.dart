@@ -173,6 +173,7 @@ const brickColors = [
   Color(0xffffe66d), // Level 3: Noch helleres Gelb
   Color(0xffffbb55), // Level 4: Noch helleres Orange
   Color(0xfff94144), // Level 5: Rot
+  Color(0xff9d4edd), // Level 6: Lila
 ];
 
 const gameWidth = 820.0;

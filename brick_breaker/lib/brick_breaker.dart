@@ -18,6 +18,8 @@ import 'package:practice_game/paddle.dart';
 import 'package:practice_game/play_area.dart';
 import 'package:practice_game/power_up.dart';
 import 'package:practice_game/score_display.dart';
+import 'package:practice_game/shooter_power_up.dart';
+import 'package:practice_game/shooter_ball.dart';
 
 class BrickBreaker extends FlameGame
     with HasCollisionDetection, KeyboardEvents, TapCallbacks {
@@ -57,13 +59,19 @@ class BrickBreaker extends FlameGame
   bool _isFireballActive = false;
   double _fireballTimer = 0;
 
-  int _level = 1;
+  int _level = 6;
   int get level => _level;
   bool get isInvincible => _isInvincible;
   bool get isFireballActive => _isFireballActive;
 
   bool _isPaddleFrozen = false;
   bool get isPaddleFrozen => _isPaddleFrozen;
+
+  bool _isShooterActive = false;
+  double _shooterTimer = 0;
+  double _shooterBallTimer = 0;
+  double _shooterPowerUpTimer = 0;
+  Paddle? _paddle;
 
   bool _checkForLevelComplete = false;
 
@@ -220,6 +228,34 @@ class BrickBreaker extends FlameGame
           }
           // Timer NICHT zurücksetzen wenn Invincibility Power-Up existiert - wartet bis es weg ist
         }
+      }
+    }
+
+    // Shooter Power-Up spawner (Level 6+)
+    if (_level >= 6) {
+      _shooterPowerUpTimer += dt;
+      final shooterSpawnTime = 40.0 + (rand.nextDouble() * 20.0);
+      if (_shooterPowerUpTimer >= shooterSpawnTime) {
+        final randomX = rand.nextDouble() * width;
+        world.add(ShooterPowerUp(position: Vector2(randomX, 0)));
+        _shooterPowerUpTimer = 0;
+      }
+    }
+
+    // Shooter mode timer
+    if (_isShooterActive) {
+      _shooterTimer += dt;
+      _shooterBallTimer += dt;
+
+      if (_shooterBallTimer >= 1.0 && _paddle != null) {
+        world.add(ShooterBall(position: _paddle!.position.clone()));
+        _shooterBallTimer = 0;
+      }
+
+      if (_shooterTimer >= 10.0) {
+        _isShooterActive = false;
+        _shooterTimer = 0;
+        _shooterBallTimer = 0;
       }
     }
   }
@@ -407,6 +443,13 @@ class BrickBreaker extends FlameGame
     });
   }
 
+  void activateShooterMode() {
+    _isShooterActive = true;
+    _shooterTimer = 0;
+    _shooterBallTimer = 0;
+    _paddle = world.children.query<Paddle>().firstOrNull;
+  }
+
   void onInvincibilityPowerUpMissed() {
     _invincibilityPowerUpTimer = 0;
   }
@@ -478,6 +521,7 @@ class BrickBreaker extends FlameGame
     world.removeAll(world.children.query<InvincibilityPowerUp>());
     world.removeAll(world.children.query<HeartPowerUp>());
     world.removeAll(world.children.query<FireballPowerUp>());
+    world.removeAll(world.children.query<ShooterPowerUp>());
 
     _bricksDestroyed = 0;
     _bricksUntilPowerUp = LevelConfig.getYellowPowerUpInterval(_level, rand);
@@ -492,6 +536,11 @@ class BrickBreaker extends FlameGame
     _waitingForFireballSpawn = false;
     _isFireballActive = false;
     _fireballTimer = 0;
+    _isShooterActive = false;
+    _shooterTimer = 0;
+    _shooterBallTimer = 0;
+    _shooterPowerUpTimer = 0;
+    _paddle = null;
 
     // Paddle sofort hinzufügen
     final paddle = Paddle(
@@ -500,6 +549,7 @@ class BrickBreaker extends FlameGame
       position: Vector2(width / 2, height * 0.95),
     );
     world.add(paddle);
+    _paddle = paddle;
 
     // Bricks hinzufügen
     world.addAll(LevelConfig.buildLevel(_level, width, height, rand));

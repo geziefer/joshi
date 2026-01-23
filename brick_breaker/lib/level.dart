@@ -68,7 +68,7 @@ class LevelConfig {
   }
 
   static LevelData _getLevel(int level) {
-    return _levels![level] ?? _levels![4]!;
+    return _levels![level] ?? _levels![5]!;
   }
 
   static double getBallSpeed(int level, double height) {
@@ -132,7 +132,7 @@ class LevelConfig {
               final isIndestructible = indestructiblePositions.contains(
                 j * levelData.columns + i,
               );
-              final hits = isIndestructible ? 1 : rand.nextInt(3) + 1;
+              final hits = isIndestructible ? 1 : rand.nextInt(4) + 1;
               final color = hits >= 2
                   ? _getContrastColor(levelColor)
                   : levelColor;

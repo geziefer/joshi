@@ -94,6 +94,25 @@
       "heartPowerUpEnabled": true,
       "ballSpeedModifier": 1.03,
       "chaosMode": true
+    },
+    {
+      "level": 6,
+      "columns": 10,
+      "rows": 9,
+      "hitsRequired": 2,
+      "brickWidthMultiplier": 1.0,
+      "brickHeightMultiplier": 0.65,
+      "indestructibleCount": 12,
+      "isMoving": true,
+      "moveSpeedBase": 140.0,
+      "moveSpeedIncrement": 0,
+      "ballSpeedFormula": "height / 1.8",
+      "yellowPowerUpMin": 5,
+      "yellowPowerUpMax": 12,
+      "greenPowerUpEnabled": true,
+      "heartPowerUpEnabled": true,
+      "ballSpeedModifier": 1.04,
+      "chaosMode": true
     }
   ]
 }

@@ -1,23 +1,31 @@
+import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flutter/material.dart';
 import 'package:practice_game/ball.dart';
 import 'package:practice_game/brick_breaker.dart';
+import 'package:practice_game/shooter_ball.dart';
 import 'package:practice_game/main.dart';
 
 class Brick extends RectangleComponent
     with CollisionCallbacks, HasGameReference<BrickBreaker> {
-  Brick(Vector2 position, Color color, {this.hitsRequired = 1, Vector2? customSize, this.isIndestructible = false, this.isMoving = false, this.moveSpeed = 0.0})
-    : _baseColor = color,
-      super(
-        position: position,
-        size: customSize ?? Vector2(brickWidth, brickHeight),
-        anchor: Anchor.center,
-        paint: Paint()
-          ..color = isIndestructible ? const Color(0xff505050) : color
-          ..style = PaintingStyle.fill,
-        children: [RectangleHitbox()],
-      );
+  Brick(
+    Vector2 position,
+    Color color, {
+    this.hitsRequired = 1,
+    Vector2? customSize,
+    this.isIndestructible = false,
+    this.isMoving = false,
+    this.moveSpeed = 0.0,
+  }) : _baseColor = color,
+       super(
+         position: position,
+         size: customSize ?? Vector2(brickWidth, brickHeight),
+         anchor: Anchor.center,
+         paint: Paint()
+           ..color = isIndestructible ? const Color(0xff505050) : color
+           ..style = PaintingStyle.fill,
+         children: [RectangleHitbox()],
+       );
 
   final int hitsRequired;
   final Color _baseColor;
@@ -30,10 +38,10 @@ class Brick extends RectangleComponent
   @override
   void update(double dt) {
     super.update(dt);
-    
+
     if (isMoving) {
       position.x += moveSpeed * _moveDirection * dt;
-      
+
       // Richtung umkehren bei Rand
       if (position.x <= size.x / 2 || position.x >= game.width - size.x / 2) {
         _moveDirection *= -1;
@@ -47,11 +55,15 @@ class Brick extends RectangleComponent
     PositionComponent other,
   ) {
     super.onCollisionStart(intersectionPoints, other);
-    
-    if (other is! Ball || isIndestructible) {
+
+    if (isIndestructible && other is! ShooterBall) {
       return;
     }
-    
+
+    if (other is! Ball && other is! ShooterBall) {
+      return;
+    }
+
     _currentHits++;
 
     // Level 4: Punkte ab dem 2. Treffer
@@ -65,11 +77,13 @@ class Brick extends RectangleComponent
       if (game.level < 4) {
         game.incScore();
       }
-      game.onBrickDestroyed(position);
+      if (other is! ShooterBall) {
+        game.onBrickDestroyed(position);
+      }
     } else {
       paint.color = Color.lerp(
         _baseColor,
-        Colors.white,
+        const Color(0xffffffff),
         _currentHits / hitsRequired,
       )!;
     }
