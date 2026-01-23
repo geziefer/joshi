@@ -6,6 +6,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:practice_game/ball.dart';
 import 'package:practice_game/brick.dart';
+import 'package:practice_game/fireball_power_up.dart';
 import 'package:practice_game/heart_power_up.dart';
 import 'package:practice_game/invincibility_border.dart';
 import 'package:practice_game/invincibility_power_up.dart';
@@ -51,9 +52,15 @@ class BrickBreaker extends FlameGame
   double _invincibilityPowerUpTimer = 0;
   double _heartPowerUpTimer = 0;
 
+  int _yellowPowerUpsCollected = 0;
+  bool _waitingForFireballSpawn = false;
+  bool _isFireballActive = false;
+  double _fireballTimer = 0;
+
   int _level = 1;
   int get level => _level;
   bool get isInvincible => _isInvincible;
+  bool get isFireballActive => _isFireballActive;
 
   bool _isPaddleFrozen = false;
   bool get isPaddleFrozen => _isPaddleFrozen;
@@ -128,6 +135,41 @@ class BrickBreaker extends FlameGame
             ),
           );
           _mainBall = null;
+        }
+
+        // Fireball spawnen wenn Level 5 und 3 gelbe Power-Ups gesammelt
+        if (_level == 5 && _waitingForFireballSpawn) {
+          _waitingForFireballSpawn = false;
+          world.add(FireballPowerUp(position: size / 2));
+        }
+      }
+    }
+
+    // Fireball timer
+    if (_isFireballActive) {
+      _fireballTimer += dt;
+      if (_fireballTimer >= 5.0) {
+        _isFireballActive = false;
+        _fireballTimer = 0;
+        _yellowPowerUpsCollected = 0;
+
+        // Fireball durch normalen Ball ersetzen
+        final fireballs = world.children
+            .query<Ball>()
+            .where((b) => b.isFireball)
+            .toList();
+        for (final fireball in fireballs) {
+          final pos = fireball.position.clone();
+          final vel = fireball.velocity.clone();
+          fireball.removeFromParent();
+          world.add(
+            Ball(
+              difficultyModifier: difficultyModifier,
+              radius: ballRadius,
+              position: pos,
+              velocity: vel,
+            ),
+          );
         }
       }
     }
@@ -225,8 +267,12 @@ class BrickBreaker extends FlameGame
     final powerUpExists = world.children.query<PowerUp>().isNotEmpty;
     final bonusBallsActive = _activeBonusBalls > 0;
     final invincibilityActive = _isInvincible;
+    final fireballActive = _isFireballActive;
 
-    if (!powerUpExists && !bonusBallsActive && !invincibilityActive) {
+    if (!powerUpExists &&
+        !bonusBallsActive &&
+        !invincibilityActive &&
+        !fireballActive) {
       _bricksDestroyed++;
     }
 
@@ -244,7 +290,8 @@ class BrickBreaker extends FlameGame
     if (_level >= 2 && _bricksDestroyed >= _bricksUntilPowerUp) {
       if (world.children.query<PowerUp>().isEmpty &&
           _activeBonusBalls == 0 &&
-          !_isInvincible) {
+          !_isInvincible &&
+          !_isFireballActive) {
         _bricksDestroyed = 0;
         _bricksUntilPowerUp = LevelConfig.getYellowPowerUpInterval(
           _level,
@@ -269,6 +316,14 @@ class BrickBreaker extends FlameGame
 
     // Grünes Power-Up entfernen wenn vorhanden
     world.removeAll(world.children.query<InvincibilityPowerUp>());
+
+    // Level 5: Zähle gelbe Power-Ups
+    if (_level == 5) {
+      _yellowPowerUpsCollected++;
+      if (_yellowPowerUpsCollected >= 2) {
+        _waitingForFireballSpawn = true;
+      }
+    }
 
     final bonusSpeed = _level > 1
         ? getPreviousLevelSpeed()
@@ -301,6 +356,7 @@ class BrickBreaker extends FlameGame
     if (_activeBonusBalls <= 0) {
       _activeBonusBalls = 0;
       _bonusBallTimer = 0;
+
       // Immer einen neuen Ball spawnen wenn alle Bonus-Bälle weg sind
       world.add(
         Ball(
@@ -314,6 +370,12 @@ class BrickBreaker extends FlameGame
         ),
       );
       _mainBall = null;
+
+      // Fireball spawnen wenn Level 5 und 2 gelbe Power-Ups gesammelt
+      if (_level == 5 && _waitingForFireballSpawn) {
+        _waitingForFireballSpawn = false;
+        world.add(FireballPowerUp(position: size / 2));
+      }
     }
   }
 
@@ -349,6 +411,53 @@ class BrickBreaker extends FlameGame
     _invincibilityPowerUpTimer = 0;
   }
 
+  void activateFireball() {
+    _isFireballActive = true;
+    _fireballTimer = 0;
+
+    // Alle Bälle entfernen
+    world.removeAll(world.children.query<Ball>());
+
+    // Fireball spawnen
+    world.add(
+      Ball(
+        isFireball: true,
+        difficultyModifier: difficultyModifier,
+        radius: ballRadius,
+        position: Vector2(width / 2, height * 0.5),
+        velocity: Vector2(
+          (rand.nextDouble() - 0.5) * width,
+          height * 0.3,
+        ).normalized()..scale(getInitialBallSpeed()),
+      ),
+    );
+
+    // Text-Anzeige hinzufügen
+    final textComponent = TextComponent(
+      text: 'FIREBALL!',
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          fontSize: 60,
+          color: Color(0xffff6600),
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      position: Vector2(width / 2, height / 2),
+      anchor: Anchor.center,
+    );
+    world.add(textComponent);
+
+    // Text nach 2 Sekunden entfernen
+    Future.delayed(const Duration(seconds: 2), () {
+      textComponent.removeFromParent();
+    });
+  }
+
+  void onFireballPowerUpMissed() {
+    _yellowPowerUpsCollected = 0;
+    _waitingForFireballSpawn = false;
+  }
+
   @override
   void onLoad() async {
     super.onLoad();
@@ -368,6 +477,7 @@ class BrickBreaker extends FlameGame
     world.removeAll(world.children.query<PowerUp>());
     world.removeAll(world.children.query<InvincibilityPowerUp>());
     world.removeAll(world.children.query<HeartPowerUp>());
+    world.removeAll(world.children.query<FireballPowerUp>());
 
     _bricksDestroyed = 0;
     _bricksUntilPowerUp = LevelConfig.getYellowPowerUpInterval(_level, rand);
@@ -378,6 +488,10 @@ class BrickBreaker extends FlameGame
     _invincibilityTimer = 0;
     _invincibilityPowerUpTimer = 0;
     _heartPowerUpTimer = 0;
+    _yellowPowerUpsCollected = 0;
+    _waitingForFireballSpawn = false;
+    _isFireballActive = false;
+    _fireballTimer = 0;
 
     // Paddle sofort hinzufügen
     final paddle = Paddle(

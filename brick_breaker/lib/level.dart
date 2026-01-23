@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flame/components.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:practice_game/brick.dart';
 import 'package:practice_game/main.dart';
+import 'package:practice_game/level_manager.dart';
 
 class LevelData {
   final int level;
@@ -23,36 +23,47 @@ class LevelData {
   final bool greenPowerUpEnabled;
   final bool heartPowerUpEnabled;
   final double ballSpeedModifier;
+  final bool chaosMode;
 
   LevelData.fromJson(Map<String, dynamic> json)
-      : level = json['level'],
-        columns = json['columns'],
-        rows = json['rows'],
-        hitsRequired = json['hitsRequired'],
-        brickWidthMultiplier = json['brickWidthMultiplier'],
-        brickHeightMultiplier = json['brickHeightMultiplier'],
-        indestructibleCount = json['indestructibleCount'],
-        isMoving = json['isMoving'],
-        moveSpeedBase = json['moveSpeedBase'],
-        moveSpeedIncrement = json['moveSpeedIncrement'],
-        ballSpeedFormula = json['ballSpeedFormula'],
-        yellowPowerUpMin = json['yellowPowerUpMin'],
-        yellowPowerUpMax = json['yellowPowerUpMax'],
-        greenPowerUpEnabled = json['greenPowerUpEnabled'],
-        heartPowerUpEnabled = json['heartPowerUpEnabled'],
-        ballSpeedModifier = json['ballSpeedModifier'];
+    : level = json['level'],
+      columns = json['columns'],
+      rows = json['rows'],
+      hitsRequired = json['hitsRequired'],
+      brickWidthMultiplier = json['brickWidthMultiplier'],
+      brickHeightMultiplier = json['brickHeightMultiplier'],
+      indestructibleCount = json['indestructibleCount'],
+      isMoving = json['isMoving'],
+      moveSpeedBase = json['moveSpeedBase'],
+      moveSpeedIncrement = json['moveSpeedIncrement'],
+      ballSpeedFormula = json['ballSpeedFormula'],
+      yellowPowerUpMin = json['yellowPowerUpMin'],
+      yellowPowerUpMax = json['yellowPowerUpMax'],
+      greenPowerUpEnabled = json['greenPowerUpEnabled'],
+      heartPowerUpEnabled = json['heartPowerUpEnabled'],
+      ballSpeedModifier = json['ballSpeedModifier'],
+      chaosMode = json['chaosMode'] ?? false;
 }
 
 class LevelConfig {
   static Map<int, LevelData>? _levels;
 
   static Future<void> loadLevels() async {
-    final jsonString = await rootBundle.loadString('assets/levels.json');
-    final data = json.decode(jsonString);
-    _levels = {};
-    for (var levelJson in data['levels']) {
-      final levelData = LevelData.fromJson(levelJson);
-      _levels![levelData.level] = levelData;
+    try {
+      final data = await LevelManager.loadLevelsFromFirebase();
+      _levels = {};
+      for (var levelJson in data['levels']) {
+        final levelData = LevelData.fromJson(levelJson);
+        _levels![levelData.level] = levelData;
+      }
+    } catch (e) {
+      final jsonString = await rootBundle.loadString('assets/levels.json');
+      final data = json.decode(jsonString);
+      _levels = {};
+      for (var levelJson in data['levels']) {
+        final levelData = LevelData.fromJson(levelJson);
+        _levels![levelData.level] = levelData;
+      }
     }
   }
 
@@ -75,7 +86,10 @@ class LevelConfig {
   static int getYellowPowerUpInterval(int level, math.Random rand) {
     final levelData = _getLevel(level);
     if (levelData.yellowPowerUpMax == 0) return 999999;
-    return rand.nextInt(levelData.yellowPowerUpMax - levelData.yellowPowerUpMin + 1) + levelData.yellowPowerUpMin;
+    return rand.nextInt(
+          levelData.yellowPowerUpMax - levelData.yellowPowerUpMin + 1,
+        ) +
+        levelData.yellowPowerUpMin;
   }
 
   static double getGreenPowerUpSpawnTime(math.Random rand) {
@@ -90,12 +104,17 @@ class LevelConfig {
     return _getLevel(level).ballSpeedModifier;
   }
 
-  static List<Brick> buildLevel(int level, double width, double height, math.Random rand) {
+  static List<Brick> buildLevel(
+    int level,
+    double width,
+    double height,
+    math.Random rand,
+  ) {
     final levelData = _getLevel(level);
     final levelColor = brickColors[(level - 1) % brickColors.length];
-    final color = levelData.hitsRequired >= 2 ? _getContrastColor(levelColor) : levelColor;
 
-    final brickW = (width - ((levelData.columns + 1) * brickGutter)) / levelData.columns;
+    final brickW =
+        (width - ((levelData.columns + 1) * brickGutter)) / levelData.columns;
     final brickH = brickHeight * levelData.brickHeightMultiplier;
 
     final indestructiblePositions = _generateIndestructiblePositions(
@@ -105,6 +124,43 @@ class LevelConfig {
       rand,
     );
 
+    if (levelData.chaosMode) {
+      return [
+        for (var i = 0; i < levelData.columns; i++)
+          for (var j = 0; j < levelData.rows; j++)
+            () {
+              final isIndestructible = indestructiblePositions.contains(
+                j * levelData.columns + i,
+              );
+              final hits = isIndestructible ? 1 : rand.nextInt(3) + 1;
+              final color = hits >= 2
+                  ? _getContrastColor(levelColor)
+                  : levelColor;
+              // Unzerstörbare Bricks stehen eher still (20% Chance zu bewegen)
+              final moveSpeed = isIndestructible
+                  ? (rand.nextDouble() < 0.2 ? levelData.moveSpeedBase : 0.0)
+                  : (rand.nextBool()
+                        ? levelData.moveSpeedBase + (rand.nextDouble() * 100)
+                        : 0.0);
+              return Brick(
+                Vector2(
+                  (i + 0.5) * brickW + (i + 1) * brickGutter,
+                  (j + 2.0) * brickH + (j + 1) * brickGutter,
+                ),
+                color,
+                hitsRequired: hits,
+                customSize: Vector2(brickW, brickH),
+                isMoving: moveSpeed > 0,
+                moveSpeed: moveSpeed,
+                isIndestructible: isIndestructible,
+              );
+            }(),
+      ];
+    }
+
+    final color = levelData.hitsRequired >= 2
+        ? _getContrastColor(levelColor)
+        : levelColor;
     return [
       for (var i = 0; i < levelData.columns; i++)
         for (var j = 0; j < levelData.rows; j++)
@@ -117,36 +173,84 @@ class LevelConfig {
             hitsRequired: levelData.hitsRequired,
             customSize: Vector2(brickW, brickH),
             isMoving: levelData.isMoving,
-            moveSpeed: levelData.moveSpeedBase + (j * levelData.moveSpeedIncrement),
-            isIndestructible: indestructiblePositions.contains(i * levelData.rows + j),
+            moveSpeed:
+                levelData.moveSpeedBase + (j * levelData.moveSpeedIncrement),
+            isIndestructible: indestructiblePositions.contains(
+              j * levelData.columns + i,
+            ),
           ),
     ];
   }
 
-  static Set<int> _generateIndestructiblePositions(int cols, int rows, int count, math.Random rand) {
+  static Set<int> _generateIndestructiblePositions(
+    int cols,
+    int rows,
+    int count,
+    math.Random rand,
+  ) {
     if (count == 0) return {};
 
     final allPositions = <int>[];
+    final lastRowPositions = <int>[];
+
     for (var i = 0; i < cols; i++) {
       for (var j = 0; j < rows; j++) {
-        allPositions.add(i * rows + j);
+        final pos = j * cols + i;
+        if (j == rows - 1) {
+          lastRowPositions.add(pos);
+        } else {
+          allPositions.add(pos);
+        }
       }
     }
+
     allPositions.shuffle(rand);
+    lastRowPositions.shuffle(rand);
 
     final indestructiblePositions = <int>{};
+
+    // Maximal 1 unzerstörbarer Brick in der untersten Reihe
+    if (lastRowPositions.isNotEmpty && rand.nextBool()) {
+      for (final pos in lastRowPositions) {
+        if (indestructiblePositions.length >= count) break;
+
+        final row = pos ~/ cols;
+        final col = pos % cols;
+        var adjacentCount = 0;
+
+        final neighbors = [
+          (row - 1) * cols + col,
+          (row + 1) * cols + col,
+          row * cols + (col - 1),
+          row * cols + (col + 1),
+        ];
+
+        for (final neighbor in neighbors) {
+          if (indestructiblePositions.contains(neighbor)) {
+            adjacentCount++;
+          }
+        }
+
+        if (adjacentCount == 0) {
+          indestructiblePositions.add(pos);
+          break;
+        }
+      }
+    }
+
+    // Rest aus den anderen Reihen
     for (final pos in allPositions) {
       if (indestructiblePositions.length >= count) break;
 
-      final row = pos ~/ rows;
-      final col = pos % rows;
+      final row = pos ~/ cols;
+      final col = pos % cols;
       var adjacentCount = 0;
 
       final neighbors = [
-        (row - 1) * rows + col,
-        (row + 1) * rows + col,
-        row * rows + (col - 1),
-        row * rows + (col + 1),
+        (row - 1) * cols + col,
+        (row + 1) * cols + col,
+        row * cols + (col - 1),
+        row * cols + (col + 1),
       ];
 
       for (final neighbor in neighbors) {
@@ -164,7 +268,11 @@ class LevelConfig {
   }
 
   static Color _getContrastColor(Color baseColor) {
-    final brightness = baseColor.computeLuminance();
-    return brightness > 0.5 ? Colors.black : Colors.orange;
+    return Color.fromRGBO(
+      ((baseColor.r * 255.0).round() * 0.85).toInt().clamp(0, 255),
+      ((baseColor.g * 255.0).round() * 0.85).toInt().clamp(0, 255),
+      ((baseColor.b * 255.0).round() * 0.85).toInt().clamp(0, 255),
+      1.0,
+    );
   }
 }

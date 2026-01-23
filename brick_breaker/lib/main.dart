@@ -13,6 +13,7 @@ import 'package:practice_game/login_screen.dart';
 import 'package:practice_game/register_dialog.dart';
 import 'package:practice_game/login_dialog.dart';
 import 'package:practice_game/start_screen.dart';
+// import 'package:practice_game/level_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,9 @@ void main() async {
       appId: "1:223791541084:web:b7ff83daf05e4cf4a62f99",
     ),
   );
+
+  // Levels zu Firebase hochladen (nur einmal ausführen)
+  // await LevelManager.uploadLevelsToFirebase();
 
   runApp(const GameApp());
 }
@@ -164,16 +168,11 @@ class _GameAppState extends State<GameApp> {
 }
 
 const brickColors = [
-  Color(0xfff94144),
-  Color(0xfff3722c),
-  Color(0xfff8961e),
-  Color(0xfff9844a),
-  Color(0xfff9c74f),
-  Color(0xff90be6d),
-  Color(0xff43aa8b),
-  Color(0xff4d908e),
-  Color(0xff277da1),
-  Color(0xff577590),
+  Color(0xff90be6d), // Level 1: Grün
+  Color(0xff5a67d8), // Level 2: Lila-Blau (unterscheidet sich von Ball/Paddle)
+  Color(0xffffe66d), // Level 3: Noch helleres Gelb
+  Color(0xffffbb55), // Level 4: Noch helleres Orange
+  Color(0xfff94144), // Level 5: Rot
 ];
 
 const gameWidth = 820.0;

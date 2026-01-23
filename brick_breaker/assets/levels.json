@@ -16,7 +16,8 @@
       "yellowPowerUpMax": 0,
       "greenPowerUpEnabled": false,
       "heartPowerUpEnabled": false,
-      "ballSpeedModifier": 1.0
+      "ballSpeedModifier": 1.0,
+      "chaosMode": false
     },
     {
       "level": 2,
@@ -34,7 +35,8 @@
       "yellowPowerUpMax": 10,
       "greenPowerUpEnabled": false,
       "heartPowerUpEnabled": false,
-      "ballSpeedModifier": 1.02
+      "ballSpeedModifier": 1.02,
+      "chaosMode": false
     },
     {
       "level": 3,
@@ -52,7 +54,8 @@
       "yellowPowerUpMax": 10,
       "greenPowerUpEnabled": true,
       "heartPowerUpEnabled": false,
-      "ballSpeedModifier": 1.03
+      "ballSpeedModifier": 1.03,
+      "chaosMode": false
     },
     {
       "level": 4,
@@ -70,7 +73,27 @@
       "yellowPowerUpMax": 20,
       "greenPowerUpEnabled": true,
       "heartPowerUpEnabled": true,
-      "ballSpeedModifier": 1.04
+      "ballSpeedModifier": 1.04,
+      "chaosMode": false
+    },
+    {
+      "level": 5,
+      "columns": 10,
+      "rows": 8,
+      "hitsRequired": 2,
+      "brickWidthMultiplier": 1.0,
+      "brickHeightMultiplier": 0.7,
+      "indestructibleCount": 10,
+      "isMoving": true,
+      "moveSpeedBase": 120.0,
+      "moveSpeedIncrement": 0,
+      "ballSpeedFormula": "height / 2.0",
+      "yellowPowerUpMin": 5,
+      "yellowPowerUpMax": 12,
+      "greenPowerUpEnabled": true,
+      "heartPowerUpEnabled": true,
+      "ballSpeedModifier": 1.03,
+      "chaosMode": true
     }
   ]
 }

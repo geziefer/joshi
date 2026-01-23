@@ -18,14 +18,21 @@ class Ball extends CircleComponent
     required double radius,
     required this.difficultyModifier,
     this.isBonus = false,
+    this.isFireball = false,
   }) : _originalColor = isBonus
            ? const Color(0xfff94144)
+           : isFireball
+           ? const Color(0xffff6600)
            : const Color(0xff1e6091),
        super(
          radius: radius,
          anchor: Anchor.center,
          paint: Paint()
-           ..color = isBonus ? const Color(0xfff94144) : const Color(0xff1e6091)
+           ..color = isBonus
+               ? const Color(0xfff94144)
+               : isFireball
+               ? const Color(0xffff6600)
+               : const Color(0xff1e6091)
            ..style = PaintingStyle.fill,
          children: [CircleHitbox()],
        );
@@ -33,6 +40,7 @@ class Ball extends CircleComponent
   final Vector2 velocity;
   final double difficultyModifier;
   final bool isBonus;
+  final bool isFireball;
   static const double maxSpeed = 900.0;
   int _brickHitsWithoutPaddle = 0;
   final Color _originalColor;
@@ -143,25 +151,27 @@ class Ball extends CircleComponent
       paint.color = _originalColor;
       canCollectPowerUp = true;
     } else if (other is Brick) {
-      if (position.y < other.position.y - other.size.y / 2) {
-        velocity.y = -velocity.y;
-      } else if (position.y > other.position.y + other.size.y / 2) {
-        velocity.y = -velocity.y;
-      } else if (position.x < other.position.x) {
-        velocity.x = -velocity.x;
-      } else if (position.x > other.position.x) {
-        velocity.x = -velocity.x;
+      if (!isFireball) {
+        if (position.y < other.position.y - other.size.y / 2) {
+          velocity.y = -velocity.y;
+        } else if (position.y > other.position.y + other.size.y / 2) {
+          velocity.y = -velocity.y;
+        } else if (position.x < other.position.x) {
+          velocity.x = -velocity.x;
+        } else if (position.x > other.position.x) {
+          velocity.x = -velocity.x;
+        }
       }
       // Level 1: Beschleunigung bei jedem Hit (nur blauer Ball)
-      if (game.level == 1 && !isBonus) {
+      if (game.level == 1 && !isBonus && !isFireball) {
         velocity.setFrom(velocity * difficultyModifier);
       }
-      if (!isBonus) {
+      if (!isBonus && !isFireball) {
         game.onBrickDestroyed(other.position);
       }
 
-      // Level 4+: Brick-Hit Counter für alle Bälle (außer unzerstörbare Bricks)
-      if (game.level >= 4 && !other.isIndestructible) {
+      // Level 4+: Brick-Hit Counter für alle Bälle (außer unzerstörbare Bricks und Fireball)
+      if (game.level >= 4 && !other.isIndestructible && !isFireball) {
         _brickHitsWithoutPaddle++;
 
         if (_brickHitsWithoutPaddle == 2) {

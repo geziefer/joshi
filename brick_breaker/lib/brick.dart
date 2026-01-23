@@ -14,7 +14,7 @@ class Brick extends RectangleComponent
         size: customSize ?? Vector2(brickWidth, brickHeight),
         anchor: Anchor.center,
         paint: Paint()
-          ..color = isIndestructible ? const Color(0xff808080) : color
+          ..color = isIndestructible ? const Color(0xff505050) : color
           ..style = PaintingStyle.fill,
         children: [RectangleHitbox()],
       );
