@@ -27,14 +27,19 @@ class Paddle extends PositionComponent
     if (game.isPaddleFrozen) return;
 
     final keysPressed = HardwareKeyboard.instance.logicalKeysPressed;
-    if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
-        keysPressed.contains(LogicalKeyboardKey.keyA)) {
+    final leftPressed = keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
+        keysPressed.contains(LogicalKeyboardKey.keyA);
+    final rightPressed = keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
+        keysPressed.contains(LogicalKeyboardKey.keyD);
+
+    if (leftPressed && rightPressed) {
+      return;
+    } else if (leftPressed) {
       position.x = (position.x - (dt * 600)).clamp(
         width / 2,
         game.width - width / 2,
       );
-    } else if (keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
-        keysPressed.contains(LogicalKeyboardKey.keyD)) {
+    } else if (rightPressed) {
       position.x = (position.x + (dt * 600)).clamp(
         width / 2,
         game.width - width / 2,

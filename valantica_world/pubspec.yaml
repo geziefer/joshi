@@ -1,0 +1,56 @@
+name: valantica_world
+description: "Minimal Space Runner (Flutter Web + Flame)"
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  flame: ^1.34.0
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/ships/ship_128.png
+    - assets/images/ships/ship_192.png
+    - assets/images/ships/ship_256.png
+    - assets/images/backgrounds/parallax_nebula_1024x512.png
+    - assets/images/backgrounds/parallax_stars_far_1024x512.png
+    - assets/images/backgrounds/parallax_stars_near_1024x512.png
+    - assets/images/targets/tier1_barrel_small.png
+    - assets/images/targets/tier1_beacon_orange.png
+    - assets/images/targets/tier1_energy_orb_blue.png
+    - assets/images/targets/tier1_rock_small.png
+    - assets/images/targets/tier1_thruster_nozzle.png
+    - assets/images/targets/tier2_antenna_tower_blue.png
+    - assets/images/targets/tier2_barrel_large.png
+    - assets/images/targets/tier2_beacon_orange_large.png
+    - assets/images/targets/tier2_core_sphere_dual.png
+    - assets/images/targets/tier2_crystal_blue.png
+    - assets/images/targets/tier2_mine_orange.png
+    - assets/images/targets/tier2_pod_armored.png
+    - assets/images/targets/tier2_rock_cluster_lava.png
+    - assets/images/targets/tier2_rock_cracked_lava.png
+    - assets/images/targets/tier2_rock_purple_eye.png
+    - assets/images/targets/tier3_chain_module.png
+    - assets/images/targets/tier3_energy_crate_lightning.png
+    - assets/images/targets/tier3_escape_pod.png
+    - assets/images/targets/tier3_shield_drone_blue.png
+    - assets/images/targets/tier4_barrel_mech.png
+    - assets/images/targets/tier4_core_container_orange.png
+    - assets/images/targets/tier4_orb_container_blue_orange.png
+    - assets/images/targets/tier4_rock_green_spikes.png

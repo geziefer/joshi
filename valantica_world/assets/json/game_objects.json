@@ -1,0 +1,589 @@
+{
+  "meta": {
+    "theme": "space_targets_passive",
+    "sizes": [
+      256,
+      512
+    ],
+    "sheet_layout": {
+      "cols": 5,
+      "rows": 4
+    },
+    "pack": "single_sprites_flutter_from_images",
+    "source_image": "A_collection_of_20_2D_digital_game_asset_icons_is_.png"
+  },
+  "objects": [
+    {
+      "id": "01_scrap_capsule",
+      "name": "Schrott-Kapsel",
+      "tier": 1,
+      "tier_name": "common",
+      "hp": 1,
+      "points": 15,
+      "shoots_back": false,
+      "movement": {
+        "type": "linear",
+        "vx": -220,
+        "vy": 0,
+        "wobble": {
+          "amp": 18,
+          "freq": 1.4
+        }
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/01_scrap_capsule.png",
+        "png_512": "assets/space_targets/sprites_512/01_scrap_capsule.png"
+      }
+    },
+    {
+      "id": "02_mini_asteroid",
+      "name": "Mini-Asteroid",
+      "tier": 1,
+      "tier_name": "common",
+      "hp": 1,
+      "points": 20,
+      "shoots_back": false,
+      "movement": {
+        "type": "linear",
+        "vx": -160,
+        "vy": -20,
+        "rotate_deg_s": 90
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/02_mini_asteroid.png",
+        "png_512": "assets/space_targets/sprites_512/02_mini_asteroid.png"
+      }
+    },
+    {
+      "id": "03_energy_blinker",
+      "name": "Energie-Blinker",
+      "tier": 1,
+      "tier_name": "common",
+      "hp": 1,
+      "points": 25,
+      "shoots_back": false,
+      "movement": {
+        "type": "stop_go",
+        "vx": -260,
+        "stop_ms": 350,
+        "go_ms": 650
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/03_energy_blinker.png",
+        "png_512": "assets/space_targets/sprites_512/03_energy_blinker.png"
+      }
+    },
+    {
+      "id": "04_wreck_piece",
+      "name": "Wrack-Platte",
+      "tier": 1,
+      "tier_name": "common",
+      "hp": 1,
+      "points": 20,
+      "shoots_back": false,
+      "movement": {
+        "type": "sine",
+        "vx": -180,
+        "amp": 40,
+        "freq": 0.9
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/04_wreck_piece.png",
+        "png_512": "assets/space_targets/sprites_512/04_wreck_piece.png"
+      }
+    },
+    {
+      "id": "05_cryo_core",
+      "name": "Kryo-Kern",
+      "tier": 1,
+      "tier_name": "common",
+      "hp": 1,
+      "points": 30,
+      "shoots_back": false,
+      "movement": {
+        "type": "hop",
+        "vx": -170,
+        "hop_px": 60,
+        "interval_ms": 800
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/05_cryo_core.png",
+        "png_512": "assets/space_targets/sprites_512/05_cryo_core.png"
+      }
+    },
+    {
+      "id": "06_satellite_bolt",
+      "name": "Satelliten-Bolzen",
+      "tier": 1,
+      "tier_name": "common",
+      "hp": 1,
+      "points": 30,
+      "shoots_back": false,
+      "movement": {
+        "type": "linear",
+        "vx": -320,
+        "vy": 0
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/06_satellite_bolt.png",
+        "png_512": "assets/space_targets/sprites_512/06_satellite_bolt.png"
+      }
+    },
+    {
+      "id": "07_inactive_mine",
+      "name": "Glüh-Mine (inaktiv)",
+      "tier": 1,
+      "tier_name": "common",
+      "hp": 1,
+      "points": 10,
+      "shoots_back": false,
+      "movement": {
+        "type": "linear",
+        "vx": -120,
+        "vy": 0,
+        "drift_y": {
+          "amp": 12,
+          "freq": 0.6
+        }
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/07_inactive_mine.png",
+        "png_512": "assets/space_targets/sprites_512/07_inactive_mine.png"
+      }
+    },
+    {
+      "id": "08_signal_buoy",
+      "name": "Signalboje",
+      "tier": 1,
+      "tier_name": "common",
+      "hp": 1,
+      "points": 25,
+      "shoots_back": false,
+      "movement": {
+        "type": "step_zigzag",
+        "vx": -200,
+        "lanes": [
+          64,
+          128,
+          192
+        ],
+        "step_ms": 700
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/08_signal_buoy.png",
+        "png_512": "assets/space_targets/sprites_512/08_signal_buoy.png"
+      }
+    },
+    {
+      "id": "09_armored_pod",
+      "name": "Panzer-Pod",
+      "tier": 2,
+      "tier_name": "uncommon",
+      "hp": 2,
+      "points": 50,
+      "shoots_back": false,
+      "movement": {
+        "type": "thrust_side",
+        "vx": -140,
+        "side_px": 40,
+        "interval_ms": [
+          700,
+          1200
+        ]
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/09_armored_pod.png",
+        "png_512": "assets/space_targets/sprites_512/09_armored_pod.png"
+      }
+    },
+    {
+      "id": "10_splitter_asteroid",
+      "name": "Splitter-Asteroid",
+      "tier": 2,
+      "tier_name": "uncommon",
+      "hp": 2,
+      "points": 40,
+      "shoots_back": false,
+      "movement": {
+        "type": "linear",
+        "vx": -150,
+        "vy": 10,
+        "rotate_deg_s": 110,
+        "on_destroy": "spawn: 02_mini_asteroid x2"
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/10_splitter_asteroid.png",
+        "png_512": "assets/space_targets/sprites_512/10_splitter_asteroid.png"
+      }
+    },
+    {
+      "id": "11_orbit_core",
+      "name": "Orbit-Kern",
+      "tier": 2,
+      "tier_name": "uncommon",
+      "hp": 3,
+      "points": 70,
+      "shoots_back": false,
+      "movement": {
+        "type": "orbit_translate",
+        "vx": -130,
+        "orbit_r": 26,
+        "orbit_freq": 1.1
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/11_orbit_core.png",
+        "png_512": "assets/space_targets/sprites_512/11_orbit_core.png"
+      }
+    },
+    {
+      "id": "12_cloak_relic",
+      "name": "Tarn-Relikt",
+      "tier": 2,
+      "tier_name": "uncommon",
+      "hp": 2,
+      "points": 80,
+      "shoots_back": false,
+      "movement": {
+        "type": "sine",
+        "vx": -170,
+        "amp": 34,
+        "freq": 1.0,
+        "visual": "cloak_pulse"
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/12_cloak_relic.png",
+        "png_512": "assets/space_targets/sprites_512/12_cloak_relic.png"
+      }
+    },
+    {
+      "id": "13_energy_crate",
+      "name": "Energie-Kiste",
+      "tier": 2,
+      "tier_name": "uncommon",
+      "hp": 2,
+      "points": 60,
+      "shoots_back": false,
+      "movement": {
+        "type": "gravity_bounce",
+        "vx": -150,
+        "g": 220,
+        "bounce": 0.8
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/13_energy_crate.png",
+        "png_512": "assets/space_targets/sprites_512/13_energy_crate.png"
+      }
+    },
+    {
+      "id": "14_magnet_orb",
+      "name": "Magnet-Kugel",
+      "tier": 2,
+      "tier_name": "uncommon",
+      "hp": 3,
+      "points": 70,
+      "shoots_back": false,
+      "movement": {
+        "type": "track_y",
+        "vx": -160,
+        "track_strength": 0.9,
+        "max_turn_px_s": 120
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/14_magnet_orb.png",
+        "png_512": "assets/space_targets/sprites_512/14_magnet_orb.png"
+      }
+    },
+    {
+      "id": "15_shield_drone",
+      "name": "Schild-Drone",
+      "tier": 3,
+      "tier_name": "rare",
+      "hp": 4,
+      "points": 120,
+      "shoots_back": false,
+      "movement": {
+        "type": "zigzag_pause_shield",
+        "vx": -140,
+        "zig_px": 50,
+        "step_ms": 650,
+        "shield": {
+          "on_ms": 1000,
+          "off_ms": 2000
+        }
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/15_shield_drone.png",
+        "png_512": "assets/space_targets/sprites_512/15_shield_drone.png"
+      }
+    },
+    {
+      "id": "16_resonance_crystal",
+      "name": "Resonanz-Kristall",
+      "tier": 3,
+      "tier_name": "rare",
+      "hp": 5,
+      "points": 150,
+      "shoots_back": false,
+      "movement": {
+        "type": "phase_orbit",
+        "vx": -120,
+        "amp": 22,
+        "freq": 0.7,
+        "orbit_r": 18,
+        "orbit_freq": 1.4
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/16_resonance_crystal.png",
+        "png_512": "assets/space_targets/sprites_512/16_resonance_crystal.png"
+      }
+    },
+    {
+      "id": "17_chain_module",
+      "name": "Ketten-Modul",
+      "tier": 3,
+      "tier_name": "rare",
+      "hp": 6,
+      "points": 180,
+      "shoots_back": false,
+      "movement": {
+        "type": "pendulum",
+        "vx": -135,
+        "swing_deg": 22,
+        "freq": 1.0
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/17_chain_module.png",
+        "png_512": "assets/space_targets/sprites_512/17_chain_module.png"
+      }
+    },
+    {
+      "id": "18_escape_capsule",
+      "name": "Fluchtkapsel",
+      "tier": 3,
+      "tier_name": "rare",
+      "hp": 4,
+      "points": 160,
+      "shoots_back": false,
+      "movement": {
+        "type": "accelerate",
+        "vx0": -140,
+        "ax": -40,
+        "escape_after_s": 6
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/18_escape_capsule.png",
+        "png_512": "assets/space_targets/sprites_512/18_escape_capsule.png"
+      }
+    },
+    {
+      "id": "19_core_container",
+      "name": "Kern-Container",
+      "tier": 4,
+      "tier_name": "elite",
+      "hp": 8,
+      "points": 260,
+      "shoots_back": false,
+      "movement": {
+        "type": "pattern_switch",
+        "vx": -110,
+        "patterns": [
+          "linear_wobble",
+          "sine",
+          "stop_go"
+        ],
+        "switch_s": 3.0,
+        "phase2_at_hp": 4
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/19_core_container.png",
+        "png_512": "assets/space_targets/sprites_512/19_core_container.png"
+      }
+    },
+    {
+      "id": "20_swarm_cocoon",
+      "name": "Schwarm-Kokon",
+      "tier": 4,
+      "tier_name": "elite",
+      "hp": 10,
+      "points": 300,
+      "shoots_back": false,
+      "movement": {
+        "type": "slow_spawner",
+        "vx": -80,
+        "spawn": {
+          "every_ms": 2000,
+          "choices": [
+            "01_scrap_capsule",
+            "02_mini_asteroid",
+            "03_energy_blinker"
+          ],
+          "count": [
+            1,
+            2
+          ]
+        }
+      },
+      "sprites": {
+        "png_256": "assets/space_targets/sprites_256/20_swarm_cocoon.png",
+        "png_512": "assets/space_targets/sprites_512/20_swarm_cocoon.png"
+      }
+    }
+  ],
+  "movement_presets": {
+    "linear_wobble": {
+      "type": "linear",
+      "vx": -220,
+      "vy": 0,
+      "wobble": {
+        "amp": 18,
+        "freq": 1.4
+      }
+    },
+    "drift_rotate": {
+      "type": "linear",
+      "vx": -160,
+      "vy": -20,
+      "rotate_deg_s": 90
+    },
+    "stop_go": {
+      "type": "stop_go",
+      "vx": -260,
+      "stop_ms": 350,
+      "go_ms": 650
+    },
+    "sine": {
+      "type": "sine",
+      "vx": -180,
+      "amp": 40,
+      "freq": 0.9
+    },
+    "hop": {
+      "type": "hop",
+      "vx": -170,
+      "hop_px": 60,
+      "interval_ms": 800
+    },
+    "fast_linear": {
+      "type": "linear",
+      "vx": -320,
+      "vy": 0
+    },
+    "slow_drift": {
+      "type": "linear",
+      "vx": -120,
+      "vy": 0,
+      "drift_y": {
+        "amp": 12,
+        "freq": 0.6
+      }
+    },
+    "step_zigzag": {
+      "type": "step_zigzag",
+      "vx": -200,
+      "lanes": [
+        64,
+        128,
+        192
+      ],
+      "step_ms": 700
+    },
+    "thrust_side": {
+      "type": "thrust_side",
+      "vx": -140,
+      "side_px": 40,
+      "interval_ms": [
+        700,
+        1200
+      ]
+    },
+    "drift_rotate_split": {
+      "type": "linear",
+      "vx": -150,
+      "vy": 10,
+      "rotate_deg_s": 110,
+      "on_destroy": "spawn: 02_mini_asteroid x2"
+    },
+    "orbit_translate": {
+      "type": "orbit_translate",
+      "vx": -130,
+      "orbit_r": 26,
+      "orbit_freq": 1.1
+    },
+    "sine_cloak": {
+      "type": "sine",
+      "vx": -170,
+      "amp": 34,
+      "freq": 1.0,
+      "visual": "cloak_pulse"
+    },
+    "gravity_bounce": {
+      "type": "gravity_bounce",
+      "vx": -150,
+      "g": 220,
+      "bounce": 0.8
+    },
+    "track_y": {
+      "type": "track_y",
+      "vx": -160,
+      "track_strength": 0.9,
+      "max_turn_px_s": 120
+    },
+    "zigzag_pause_shield": {
+      "type": "zigzag_pause_shield",
+      "vx": -140,
+      "zig_px": 50,
+      "step_ms": 650,
+      "shield": {
+        "on_ms": 1000,
+        "off_ms": 2000
+      }
+    },
+    "phase_orbit": {
+      "type": "phase_orbit",
+      "vx": -120,
+      "amp": 22,
+      "freq": 0.7,
+      "orbit_r": 18,
+      "orbit_freq": 1.4
+    },
+    "pendulum_chain": {
+      "type": "pendulum",
+      "vx": -135,
+      "swing_deg": 22,
+      "freq": 1.0
+    },
+    "accelerate_escape": {
+      "type": "accelerate",
+      "vx0": -140,
+      "ax": -40,
+      "escape_after_s": 6
+    },
+    "pattern_switch": {
+      "type": "pattern_switch",
+      "vx": -110,
+      "patterns": [
+        "linear_wobble",
+        "sine",
+        "stop_go"
+      ],
+      "switch_s": 3.0,
+      "phase2_at_hp": 4
+    },
+    "slow_spawner": {
+      "type": "slow_spawner",
+      "vx": -80,
+      "spawn": {
+        "every_ms": 2000,
+        "choices": [
+          "01_scrap_capsule",
+          "02_mini_asteroid",
+          "03_energy_blinker"
+        ],
+        "count": [
+          1,
+          2
+        ]
+      }
+    }
+  }
+}
