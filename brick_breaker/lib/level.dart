@@ -68,7 +68,29 @@ class LevelConfig {
   }
 
   static LevelData _getLevel(int level) {
-    return _levels![level] ?? _levels![5]!;
+    if (_levels == null || _levels!.isEmpty) {
+      // Fallback wenn Levels noch nicht geladen sind
+      return LevelData.fromJson({
+        'level': 1,
+        'columns': 6,
+        'rows': 5,
+        'hitsRequired': 1,
+        'brickWidthMultiplier': 1.0,
+        'brickHeightMultiplier': 1.0,
+        'indestructibleCount': 0,
+        'isMoving': false,
+        'moveSpeedBase': 0.0,
+        'moveSpeedIncrement': 0.0,
+        'ballSpeedFormula': 'height / 4',
+        'yellowPowerUpMin': 0,
+        'yellowPowerUpMax': 0,
+        'greenPowerUpEnabled': false,
+        'heartPowerUpEnabled': false,
+        'ballSpeedModifier': 1.01,
+        'chaosMode': false,
+      });
+    }
+    return _levels![level] ?? _levels![1]!;
   }
 
   static double getBallSpeed(int level, double height) {

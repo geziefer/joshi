@@ -152,7 +152,8 @@ class _GameAppState extends State<GameApp> {
             setState(() {
               _gameStarted = true;
             });
-            await Future.delayed(const Duration(milliseconds: 50));
+            await Future.delayed(const Duration(milliseconds: 100));
+            await game.ready();
             game.startGame(withCountdown: true);
           },
           onBack: () {

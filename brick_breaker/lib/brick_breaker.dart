@@ -59,7 +59,7 @@ class BrickBreaker extends FlameGame
   bool _isFireballActive = false;
   double _fireballTimer = 0;
 
-  int _level = 6;
+  int _level = 1;
   int get level => _level;
   bool get isInvincible => _isInvincible;
   bool get isFireballActive => _isFireballActive;
