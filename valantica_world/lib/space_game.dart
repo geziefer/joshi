@@ -259,6 +259,8 @@ class PlayerShip extends SpriteComponent
   bool _shooting = false;
   double _shootTimer = 0;
   final double _shootDelay = 0.25;
+  bool isInvincible = false;
+  double _invincibleTimer = 0;
 
   PlayerShip({
     required Sprite sprite,
@@ -281,6 +283,17 @@ class PlayerShip extends SpriteComponent
       if (_shootTimer >= _shootDelay) {
         _shootTimer = 0;
         _fireLaser();
+      }
+    }
+    
+    if (isInvincible) {
+      _invincibleTimer += dt;
+      if (_invincibleTimer >= 1.0) {
+        isInvincible = false;
+        _invincibleTimer = 0;
+        opacity = 1.0;
+      } else {
+        opacity = 0.5 + 0.5 * ((_invincibleTimer * 10) % 1);
       }
     }
   }
@@ -333,9 +346,11 @@ class PlayerShip extends SpriteComponent
 
     if (game.lives > 0) {
       // Respawn ship
-      Future.delayed(const Duration(milliseconds: 500), () {
+      Future.delayed(const Duration(milliseconds: 1500), () {
         if (!game.isGameOver) {
           position = Vector2(fixedX, game.size.y / 2);
+          isInvincible = true;
+          _invincibleTimer = 0;
           game.add(this);
         }
       });
@@ -411,14 +426,20 @@ class AsteroidSpawner extends Component with HasGameReference<SpaceGame> {
     final int health;
     final int points;
 
-    if (rand < 0.25) {
-      // Debris (25%)
+    if (rand < 0.10) {
+      // Heavy Debris (10%)
+      spritePath = 'targets/tier4_rock_green_spikes.png';
+      size = 90.0;
+      health = 3;
+      points = 0;
+    } else if (rand < 0.30) {
+      // Light Debris (20%)
       spritePath = 'targets/tier1_thruster_nozzle.png';
       size = 70.0;
       health = 2;
       points = 0;
     } else if (rand < 0.60) {
-      // Tier 2 (35%)
+      // Tier 2 (30%)
       spritePath = 'targets/tier2_rock_cracked_lava.png';
       size = 120.0;
       health = 3;
@@ -505,8 +526,12 @@ class Asteroid extends SpriteComponent
   ) {
     super.onCollisionStart(intersectionPoints, other);
     if (other is PlayerShip) {
-      removeFromParent();
-      other.explode();
+      if (other.isInvincible) {
+        removeFromParent();
+      } else {
+        removeFromParent();
+        other.explode();
+      }
     } else if (other is Laser) {
       health--;
       if (health <= 0) {
