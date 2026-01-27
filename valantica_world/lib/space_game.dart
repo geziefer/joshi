@@ -45,7 +45,7 @@ class SpaceGame extends FlameGame
     add(parallax);
 
     // Ship
-    final shipSprite = await loadSprite('ships/ship_192.png');
+    final shipSprite = await loadSprite('ships/ship_256.png');
     ship =
         PlayerShip(
             sprite: shipSprite,
@@ -224,8 +224,8 @@ class AsteroidSpawner extends Component with HasGameReference<SpaceGame> {
     final isBig = _rng.nextDouble() < 0.25;
 
     final spritePath = isBig
-        ? 'targets/tier1_barrel_small.png'
-        : 'targets/tier1_beacon_orange.png';
+        ? 'targets/tier2_rock_cracked_lava.png'
+        : 'targets/tier1_rock_small.png';
 
     final sprite = await game.loadSprite(spritePath);
 
