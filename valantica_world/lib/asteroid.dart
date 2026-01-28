@@ -12,12 +12,14 @@ class Asteroid extends SpriteComponent
   int health;
   final int points;
   final String spritePath;
+  final Vector2 velocity;
 
   Asteroid({
     required super.sprite,
     required this.health,
     required this.points,
     required this.spritePath,
+    required this.velocity,
   });
 
   @override
@@ -92,12 +94,12 @@ class Asteroid extends SpriteComponent
   @override
   void update(double dt) {
     super.update(dt);
-    position.x -= game.worldSpeed * dt;
+    position += velocity * dt;
 
     _rot += dt * 0.8;
     angle = _rot;
 
-    if (position.x < -size.x - 120) {
+    if (position.x < -size.x - 120 || position.y < -size.y - 120 || position.y > game.size.y + size.y + 120) {
       removeFromParent();
     }
   }
@@ -129,7 +131,6 @@ class AsteroidSpawner extends Component with HasGameReference<SpaceGame> {
   }
 
   Future<void> _spawnAsteroid() async {
-    final lane = _lanes[_rng.nextInt(_lanes.length)];
     final asteroids = LevelManager.currentLevel.asteroids;
     final selectedAsteroid = asteroids[_rng.nextInt(asteroids.length)];
 
@@ -156,6 +157,24 @@ class AsteroidSpawner extends Component with HasGameReference<SpaceGame> {
       points = 1;
     }
 
+    final Vector2 spawnPos;
+    final Vector2 velocity;
+
+    if (LevelManager.currentLevelNumber >= 3 && _rng.nextDouble() < 0.3) {
+      final fromTop = _rng.nextBool();
+      if (fromTop) {
+        spawnPos = Vector2(game.size.x + 80, 80);
+        velocity = Vector2(-game.worldSpeed * 0.8, game.worldSpeed * 0.6);
+      } else {
+        spawnPos = Vector2(game.size.x + 80, game.size.y - 80);
+        velocity = Vector2(-game.worldSpeed * 0.8, -game.worldSpeed * 0.6);
+      }
+    } else {
+      final lane = _lanes[_rng.nextInt(_lanes.length)];
+      spawnPos = Vector2(game.size.x + 80, lane + _rng.nextDouble() * 40 - 20);
+      velocity = Vector2(-game.worldSpeed, 0);
+    }
+
     final sprite = await game.loadSprite(spritePath);
     final asteroid =
         Asteroid(
@@ -163,13 +182,11 @@ class AsteroidSpawner extends Component with HasGameReference<SpaceGame> {
             health: health,
             points: points,
             spritePath: spritePath,
+            velocity: velocity,
           )
           ..size = Vector2.all(size)
           ..anchor = Anchor.center
-          ..position = Vector2(
-            game.size.x + 80,
-            lane + _rng.nextDouble() * 40 - 20,
-          );
+          ..position = spawnPos;
 
     game.add(asteroid);
   }
