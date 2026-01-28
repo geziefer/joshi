@@ -3,10 +3,8 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:practice_game/brick.dart';
 import 'package:practice_game/brick_breaker.dart';
-import 'package:practice_game/highscore_manager.dart';
 import 'package:practice_game/paddle.dart';
 import 'package:practice_game/play_area.dart';
 
@@ -106,24 +104,10 @@ class Ball extends CircleComponent
           final wasInvincible = game.isInvincible;
           if (!wasInvincible) {
             // Nicht unsterblich: Leben abziehen
-            final currentScore = game.score;
             add(
               RemoveEffect(
                 delay: 0.35,
-                onComplete: () async {
-                  if (game.lives <= 1) {
-                    if (currentScore > 0) {
-                      try {
-                        final username = FirebaseAuth.instance.currentUser?.displayName ?? 'Spieler';
-                        await HighscoreManager.addScore(
-                          username,
-                          currentScore,
-                        );
-                      } catch (e) {
-                        // Error saving score
-                      }
-                    }
-                  }
+                onComplete: () {
                   game.loseLife();
                 },
               ),

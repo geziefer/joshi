@@ -22,7 +22,7 @@ class HighscoreEntry {
 }
 
 class HighscoreManager {
-  static const String _key = 'highscores';
+  static const String _key = 'space_highscores';
   static final _database = FirebaseDatabase.instance.ref();
 
   static Future<List<HighscoreEntry>> getHighscores() async {
@@ -63,7 +63,7 @@ class HighscoreManager {
 
   static Future<List<HighscoreEntry>> getGlobalHighscores() async {
     try {
-      final snapshot = await _database.child('highscores').get();
+      final snapshot = await _database.child('space_highscores').get();
       if (!snapshot.exists) return [];
 
       final data = snapshot.value as Map<dynamic, dynamic>;
@@ -79,7 +79,7 @@ class HighscoreManager {
   }
 
   static Stream<List<HighscoreEntry>> watchGlobalHighscores() {
-    return _database.child('highscores').onValue.map((event) {
+    return _database.child('space_highscores').onValue.map((event) {
       if (!event.snapshot.exists) return <HighscoreEntry>[];
 
       final data = event.snapshot.value as Map<dynamic, dynamic>;
@@ -91,7 +91,6 @@ class HighscoreManager {
       return allScores.take(10).toList();
     });
   }
-
 
   static Future<void> addScore(String username, int score) async {
     try {
@@ -110,7 +109,7 @@ class HighscoreManager {
 
   static Future<void> _syncTop10ToFirebase() async {
     try {
-      final snapshot = await _database.child('highscores').get();
+      final snapshot = await _database.child('space_highscores').get();
       final allScores = <HighscoreEntry>[];
       
       if (snapshot.exists) {
@@ -125,18 +124,17 @@ class HighscoreManager {
       allScores.sort((a, b) => b.score.compareTo(a.score));
       final top10 = allScores.take(10).toList();
       
-      await _database.child('highscores').set(
-        Map.fromEntries(
-          top10.asMap().entries.map((e) => MapEntry(
-            e.key.toString(),
-            {
-              'username': e.value.username,
-              'score': e.value.score,
-              'timestamp': DateTime.now().millisecondsSinceEpoch,
-            },
-          )),
-        ),
-      );
+      // Alte Einträge löschen
+      await _database.child('space_highscores').remove();
+      
+      // Nur Top 10 speichern
+      for (final entry in top10) {
+        await _database.child('space_highscores').push().set({
+          'username': entry.username,
+          'score': entry.score,
+          'timestamp': DateTime.now().millisecondsSinceEpoch,
+        });
+      }
     } catch (e) {
       // Error syncing to Firebase
     }

@@ -50,7 +50,7 @@ class LoginScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         const Text(
-                          'Globaler Highscore',
+                          'Highscores',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -68,7 +68,9 @@ class LoginScreen extends StatelessWidget {
                               children: List.generate(
                                 scores.length,
                                 (i) => Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                  ),
                                   child: Text(
                                     '${i + 1}. ${scores[i].username} - ${scores[i].score}',
                                     style: const TextStyle(fontSize: 16),

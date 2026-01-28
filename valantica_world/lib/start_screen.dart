@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:practice_game/highscore_manager.dart';
+import 'package:valantica_world/highscore_manager.dart';
 
 class StartScreen extends StatelessWidget {
   final VoidCallback onStart;
@@ -8,16 +8,11 @@ class StartScreen extends StatelessWidget {
     super.key,
     required this.onStart,
   });
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xffa9d6e5), Color(0xfff2e8cf)],
-        ),
-      ),
+      color: Colors.black,
       child: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -27,11 +22,11 @@ class StartScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 40),
                 const Text(
-                  'BRICK BREAKER',
+                  'SPACE RUNNER',
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xff1e6091),
+                    color: Colors.cyan,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -39,8 +34,9 @@ class StartScreen extends StatelessWidget {
                   width: 350,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Color.fromRGBO(255, 255, 255, 0.8),
+                    color: const Color(0xff1a1a2e),
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.cyan, width: 2),
                   ),
                   child: Column(
                     children: [
@@ -49,6 +45,7 @@ class StartScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: Colors.cyan,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -57,7 +54,10 @@ class StartScreen extends StatelessWidget {
                         builder: (context, snapshot) {
                           final scores = snapshot.data ?? [];
                           if (scores.isEmpty) {
-                            return const Text('Noch keine Highscores');
+                            return const Text(
+                              'Noch keine Highscores',
+                              style: TextStyle(color: Colors.white),
+                            );
                           }
                           return Column(
                             children: List.generate(
@@ -66,7 +66,10 @@ class StartScreen extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(vertical: 4),
                                 child: Text(
                                   '${i + 1}. ${scores[i].username} - ${scores[i].score}',
-                                  style: const TextStyle(fontSize: 16),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
@@ -80,8 +83,8 @@ class StartScreen extends StatelessWidget {
                 ElevatedButton(
                   onPressed: onStart,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xff1e6091),
-                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.cyan,
+                    foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 48,
                       vertical: 20,

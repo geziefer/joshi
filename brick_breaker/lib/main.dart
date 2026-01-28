@@ -9,11 +9,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:practice_game/brick_breaker.dart';
-import 'package:practice_game/login_screen.dart';
-import 'package:practice_game/register_dialog.dart';
-import 'package:practice_game/login_dialog.dart';
 import 'package:practice_game/start_screen.dart';
-// import 'package:practice_game/level_manager.dart';
+import 'package:practice_game/highscore_manager.dart';
+import 'package:practice_game/highscore_name_dialog.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,8 +45,8 @@ class GameApp extends StatefulWidget {
 class _GameAppState extends State<GameApp> {
   late BrickBreaker game;
   bool _gameStarted = false;
-  String _currentScreen = 'login'; // 'login', 'register', 'loginDialog', 'menu'
-  String _currentUsername = '';
+  bool _showingHighscoreDialog = false;
+  int? _finalScore;
 
   @override
   void initState() {
@@ -56,15 +54,34 @@ class _GameAppState extends State<GameApp> {
     game = BrickBreaker(onGameOver: _onGameOver);
   }
 
-  void _onGameOver() {
+  void _onGameOver() async {
+    final score = game.score;
+    _finalScore = score;
+    
+    // Prüfe ob Score in Top 10
+    final isTop10 = await HighscoreManager.isTop10Score(score);
+    
     setState(() {
       _gameStarted = false;
-      _currentScreen = 'menu';
+      _showingHighscoreDialog = isTop10;
     });
-    Future.delayed(const Duration(milliseconds: 100), () {
-      setState(() {
-        game = BrickBreaker(onGameOver: _onGameOver);
+    
+    if (!isTop10) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        setState(() {
+          game = BrickBreaker(onGameOver: _onGameOver);
+        });
       });
+    }
+  }
+
+  void _onHighscoreSubmit(String username) async {
+    if (_finalScore != null) {
+      await HighscoreManager.addScore(username, _finalScore!);
+    }
+    setState(() {
+      _showingHighscoreDialog = false;
+      game = BrickBreaker(onGameOver: _onGameOver);
     });
   }
 
@@ -73,7 +90,12 @@ class _GameAppState extends State<GameApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: _gameStarted
+        body: _showingHighscoreDialog
+            ? HighscoreNameDialog(
+                score: _finalScore!,
+                onSubmit: _onHighscoreSubmit,
+              )
+            : _gameStarted
             ? Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
@@ -97,75 +119,21 @@ class _GameAppState extends State<GameApp> {
                   ),
                 ),
               )
-            : _buildCurrentScreen(),
+            : StartScreen(
+                onStart: () async {
+                  setState(() {
+                    _gameStarted = true;
+                  });
+                  await Future.delayed(const Duration(milliseconds: 100));
+                  await game.ready();
+                  game.startGame(withCountdown: true);
+                },
+              ),
       ),
     );
   }
 
-  Widget _buildCurrentScreen() {
-    switch (_currentScreen) {
-      case 'login':
-        return LoginScreen(
-          onRegister: () {
-            setState(() {
-              _currentScreen = 'register';
-            });
-          },
-          onLogin: () {
-            setState(() {
-              _currentScreen = 'loginDialog';
-            });
-          },
-        );
-      case 'register':
-        return RegisterDialog(
-          onRegister: (username) {
-            setState(() {
-              _currentUsername = username;
-              _currentScreen = 'menu';
-            });
-          },
-          onCancel: () {
-            setState(() {
-              _currentScreen = 'login';
-            });
-          },
-        );
-      case 'loginDialog':
-        return LoginDialog(
-          onLogin: (username) {
-            setState(() {
-              _currentUsername = username;
-              _currentScreen = 'menu';
-            });
-          },
-          onCancel: () {
-            setState(() {
-              _currentScreen = 'login';
-            });
-          },
-        );
-      case 'menu':
-        return StartScreen(
-          username: _currentUsername,
-          onStart: () async {
-            setState(() {
-              _gameStarted = true;
-            });
-            await Future.delayed(const Duration(milliseconds: 100));
-            await game.ready();
-            game.startGame(withCountdown: true);
-          },
-          onBack: () {
-            setState(() {
-              _currentScreen = 'login';
-            });
-          },
-        );
-      default:
-        return Container();
-    }
-  }
+
 }
 
 const brickColors = [

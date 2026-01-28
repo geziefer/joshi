@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 
-class UsernameDialog extends StatefulWidget {
-  final VoidCallback onStart;
+class HighscoreNameDialog extends StatefulWidget {
+  final int score;
+  final Function(String) onSubmit;
 
-  const UsernameDialog({super.key, required this.onStart});
+  const HighscoreNameDialog({
+    super.key,
+    required this.score,
+    required this.onSubmit,
+  });
 
   @override
-  State<UsernameDialog> createState() => _UsernameDialogState();
+  State<HighscoreNameDialog> createState() => _HighscoreNameDialogState();
 }
 
-class _UsernameDialogState extends State<UsernameDialog> {
+class _HighscoreNameDialogState extends State<HighscoreNameDialog> {
   final _controller = TextEditingController();
 
   @override
@@ -18,12 +23,11 @@ class _UsernameDialogState extends State<UsernameDialog> {
     super.dispose();
   }
 
-  Future<void> _checkAndStart() async {
-    final username = _controller.text.trim();
-    if (username.isEmpty) return;
-
-    currentUsername = username;
-    widget.onStart();
+  void _submit() {
+    final name = _controller.text.trim();
+    if (name.isNotEmpty) {
+      widget.onSubmit(name);
+    }
   }
 
   @override
@@ -48,8 +52,13 @@ class _UsernameDialogState extends State<UsernameDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'Benutzername eingeben',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                '🎉 Top 10! 🎉',
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Score: ${widget.score}',
+                style: const TextStyle(fontSize: 24, color: Color(0xff1e6091)),
               ),
               const SizedBox(height: 24),
               TextField(
@@ -59,11 +68,11 @@ class _UsernameDialogState extends State<UsernameDialog> {
                   hintText: 'Dein Name',
                 ),
                 maxLength: 20,
-                onSubmitted: (_) => _checkAndStart(),
+                onSubmitted: (_) => _submit(),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _checkAndStart,
+                onPressed: _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xff1e6091),
                   foregroundColor: Colors.white,
@@ -76,7 +85,7 @@ class _UsernameDialogState extends State<UsernameDialog> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                child: const Text('GO'),
+                child: const Text('SPEICHERN'),
               ),
             ],
           ),
@@ -85,5 +94,3 @@ class _UsernameDialogState extends State<UsernameDialog> {
     );
   }
 }
-
-String currentUsername = 'Spieler';
