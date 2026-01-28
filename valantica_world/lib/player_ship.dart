@@ -29,7 +29,7 @@ class PlayerShip extends SpriteComponent
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    add(CircleHitbox());
+    add(CircleHitbox(radius: size.x * 0.30, position: size / 2, anchor: Anchor.center));
   }
 
   @override

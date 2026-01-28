@@ -1,0 +1,40 @@
+{
+  "levels": [
+    {
+      "id": 1,
+      "name": "Level 1",
+      "duration": 30,
+      "worldSpeed": 260,
+      "spawnRate": 0.4,
+      "asteroids": [
+        "tier1_rock_small.png",
+        "tier1_thruster_nozzle.png"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Level 2",
+      "duration": 45,
+      "worldSpeed": 320,
+      "spawnRate": 0.35,
+      "asteroids": [
+        "tier1_rock_small.png",
+        "tier1_thruster_nozzle.png",
+        "tier2_rock_cracked_lava.png"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Level 3",
+      "duration": 60,
+      "worldSpeed": 400,
+      "spawnRate": 0.3,
+      "asteroids": [
+        "tier1_rock_small.png",
+        "tier1_thruster_nozzle.png",
+        "tier2_rock_cracked_lava.png",
+        "tier4_rock_green_spikes.png"
+      ]
+    }
+  ]
+}

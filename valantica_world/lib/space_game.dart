@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'player_ship.dart';
 import 'asteroid.dart';
+import 'level_manager.dart';
 
 class SpaceGame extends FlameGame
     with KeyboardEvents, TapCallbacks, DragCallbacks, HasCollisionDetection {
-  SpaceGame({required this.onGameOver});
+  SpaceGame({required this.onGameOver, required this.onLevelComplete});
   final VoidCallback onGameOver;
+  final VoidCallback onLevelComplete;
 
   // --- Tuning ---
   final double shipX = 110;
@@ -21,6 +23,7 @@ class SpaceGame extends FlameGame
   // World speed for scrolling objects
   double worldSpeed = 260; // px/s
   double _elapsed = 0;
+  double _levelTimer = 0;
 
   // Keyboard state
   bool upPressed = false;
@@ -34,6 +37,7 @@ class SpaceGame extends FlameGame
   int score = 0;
   int lives = 3;
   late final TextComponent scoreText;
+  late final TextComponent levelText;
   final List<SpriteComponent> lifeIcons = [];
 
   @override
@@ -84,6 +88,21 @@ class SpaceGame extends FlameGame
     );
     add(scoreText);
 
+    // Level display
+    levelText = TextComponent(
+      text: 'Level ${LevelManager.currentLevelNumber}',
+      position: Vector2(size.x / 2, 20),
+      anchor: Anchor.topCenter,
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+    add(levelText);
+
     // Life icons
     for (int i = 0; i < 3; i++) {
       final lifeIcon = SpriteComponent(
@@ -105,11 +124,15 @@ class SpaceGame extends FlameGame
 
     if (isGameOver) return;
 
-    // Slight difficulty ramp over time (optional)
+    _levelTimer += dt;
+    if (_levelTimer >= LevelManager.currentLevel.duration) {
+      levelComplete();
+      return;
+    }
+
     _elapsed += dt;
     if (_elapsed > 1) {
       _elapsed = 0;
-      worldSpeed = (worldSpeed + 2).clamp(260, 520);
     }
 
     // Ship input
@@ -145,14 +168,37 @@ class SpaceGame extends FlameGame
     onGameOver();
   }
 
+  void levelComplete() {
+    isGameOver = true;
+    ship.stopShooting();
+    onLevelComplete();
+  }
+
+  void loadLevel() {
+    worldSpeed = LevelManager.currentLevel.worldSpeed;
+    _levelTimer = 0;
+    levelText.text = 'Level ${LevelManager.currentLevelNumber}';
+    
+    // Remove all asteroids
+    children.whereType<Asteroid>().toList().forEach(
+      (a) => a.removeFromParent(),
+    );
+    
+    // Reset ship position
+    ship.position = Vector2(shipX, size.y / 2);
+    ship.isInvincible = false;
+    ship.opacity = 1.0;
+  }
+
   void restart() {
     isGameOver = false;
     overlays.remove('gameOver');
-    worldSpeed = 260;
     _elapsed = 0;
+    _levelTimer = 0;
     score = 0;
     lives = 3;
     scoreText.text = 'Score: 0';
+    loadLevel();
 
     // Remove all asteroids
     children.whereType<Asteroid>().toList().forEach(
@@ -206,13 +252,17 @@ class SpaceGame extends FlameGame
 
   void setUpPressed(bool pressed) => upPressed = pressed;
   void setDownPressed(bool pressed) => downPressed = pressed;
-  void startShooting() => ship.startShooting();
+  void startShooting() {
+    if (!isGameOver) ship.startShooting();
+  }
+  
   void stopShooting() => ship.stopShooting();
 
   bool _isDragging = false;
 
   @override
   void onTapDown(TapDownEvent event) {
+    if (isGameOver) return;
     if (ship.containsPoint(event.localPosition)) {
       _isDragging = true;
     } else {
@@ -222,21 +272,26 @@ class SpaceGame extends FlameGame
 
   @override
   void onTapUp(TapUpEvent event) {
+    if (!_isDragging) {
+      ship.stopShooting();
+    }
     _isDragging = false;
-    ship.stopShooting();
   }
 
   @override
   void onTapCancel(TapCancelEvent event) {
-    _isDragging = false;
     ship.stopShooting();
+    _isDragging = false;
   }
 
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
+    if (isGameOver) return;
     if (ship.containsPoint(event.localPosition)) {
       _isDragging = true;
+    } else {
+      ship.startShooting();
     }
   }
 
@@ -251,6 +306,7 @@ class SpaceGame extends FlameGame
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
+    ship.stopShooting();
     _isDragging = false;
   }
 }

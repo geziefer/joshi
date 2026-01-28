@@ -14,7 +14,7 @@ class Laser extends PositionComponent
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    add(RectangleHitbox());
+    add(RectangleHitbox(collisionType: CollisionType.active));
   }
 
   @override

@@ -4,19 +4,67 @@ import 'package:flame/collisions.dart';
 import 'space_game.dart';
 import 'player_ship.dart';
 import 'laser.dart';
+import 'level_manager.dart';
 
 class Asteroid extends SpriteComponent
     with HasGameReference<SpaceGame>, CollisionCallbacks {
   double _rot = 0;
   int health;
   final int points;
+  final String spritePath;
 
-  Asteroid({required super.sprite, required this.health, required this.points});
+  Asteroid({
+    required super.sprite,
+    required this.health,
+    required this.points,
+    required this.spritePath,
+  });
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    add(CircleHitbox());
+    
+    if (spritePath.contains('rock_cracked_lava')) {
+      add(PolygonHitbox.relative([
+        Vector2(0.40, 0.30),
+        Vector2(0.60, 0.28),
+        Vector2(0.70, 0.50),
+        Vector2(0.65, 0.70),
+        Vector2(0.45, 0.72),
+        Vector2(0.30, 0.52),
+      ], parentSize: size, collisionType: CollisionType.passive));
+      add(PolygonHitbox.relative([
+        Vector2(0.35, 0.25),
+        Vector2(0.65, 0.23),
+        Vector2(0.75, 0.50),
+        Vector2(0.70, 0.75),
+        Vector2(0.40, 0.77),
+        Vector2(0.25, 0.52),
+      ], parentSize: size, collisionType: CollisionType.inactive, isSolid: true));
+    } else if (spritePath.contains('rock_green_spikes')) {
+      add(PolygonHitbox.relative([
+        Vector2(0.42, 0.35),
+        Vector2(0.58, 0.35),
+        Vector2(0.65, 0.50),
+        Vector2(0.58, 0.65),
+        Vector2(0.42, 0.65),
+        Vector2(0.35, 0.50),
+      ], parentSize: size, collisionType: CollisionType.passive));
+      add(PolygonHitbox.relative([
+        Vector2(0.38, 0.30),
+        Vector2(0.62, 0.30),
+        Vector2(0.70, 0.50),
+        Vector2(0.62, 0.70),
+        Vector2(0.38, 0.70),
+        Vector2(0.30, 0.50),
+      ], parentSize: size, collisionType: CollisionType.inactive, isSolid: true));
+    } else if (spritePath.contains('thruster_nozzle')) {
+      add(CircleHitbox(radius: size.x * 0.28, position: size / 2, anchor: Anchor.center, collisionType: CollisionType.passive));
+      add(CircleHitbox(radius: size.x * 0.35, position: size / 2, anchor: Anchor.center, collisionType: CollisionType.inactive, isSolid: true));
+    } else {
+      add(CircleHitbox(radius: size.x * 0.26, position: size / 2, anchor: Anchor.center, collisionType: CollisionType.passive));
+      add(CircleHitbox(radius: size.x * 0.33, position: size / 2, anchor: Anchor.center, collisionType: CollisionType.inactive, isSolid: true));
+    }
   }
 
   @override
@@ -75,54 +123,53 @@ class AsteroidSpawner extends Component with HasGameReference<SpaceGame> {
     _timer += dt;
     if (_timer >= _nextSpawn) {
       _timer = 0;
-
-      final speedT = (game.worldSpeed - 260) / (520 - 260);
-      final base = 0.4 - 0.15 * speedT;
-      _nextSpawn = (base + _rng.nextDouble() * 0.15).clamp(0.2, 0.6);
-
+      _nextSpawn = LevelManager.currentLevel.spawnRate;
       _spawnAsteroid();
     }
   }
 
   Future<void> _spawnAsteroid() async {
     final lane = _lanes[_rng.nextInt(_lanes.length)];
-    final rand = _rng.nextDouble();
+    final asteroids = LevelManager.currentLevel.asteroids;
+    final selectedAsteroid = asteroids[_rng.nextInt(asteroids.length)];
 
-    final String spritePath;
+    final String spritePath = 'targets/$selectedAsteroid';
     final double size;
     final int health;
     final int points;
 
-    if (rand < 0.10) {
-      spritePath = 'targets/tier4_rock_green_spikes.png';
+    if (selectedAsteroid.contains('rock_green_spikes')) {
       size = 90.0;
       health = 3;
       points = 0;
-    } else if (rand < 0.30) {
-      spritePath = 'targets/tier1_thruster_nozzle.png';
+    } else if (selectedAsteroid.contains('thruster_nozzle')) {
       size = 70.0;
       health = 2;
       points = 0;
-    } else if (rand < 0.60) {
-      spritePath = 'targets/tier2_rock_cracked_lava.png';
+    } else if (selectedAsteroid.contains('rock_cracked_lava')) {
       size = 120.0;
       health = 3;
       points = 2;
     } else {
-      spritePath = 'targets/tier1_rock_small.png';
       size = 84.0;
       health = 2;
       points = 1;
     }
 
     final sprite = await game.loadSprite(spritePath);
-    final asteroid = Asteroid(sprite: sprite, health: health, points: points)
-      ..size = Vector2.all(size)
-      ..anchor = Anchor.center
-      ..position = Vector2(
-        game.size.x + 80,
-        lane + _rng.nextDouble() * 40 - 20,
-      );
+    final asteroid =
+        Asteroid(
+            sprite: sprite,
+            health: health,
+            points: points,
+            spritePath: spritePath,
+          )
+          ..size = Vector2.all(size)
+          ..anchor = Anchor.center
+          ..position = Vector2(
+            game.size.x + 80,
+            lane + _rng.nextDouble() * 40 - 20,
+          );
 
     game.add(asteroid);
   }

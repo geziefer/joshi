@@ -57,3 +57,4 @@ flutter:
     - assets/images/targets/tier4_core_container_orange.png
     - assets/images/targets/tier4_orb_container_blue_orange.png
     - assets/images/targets/tier4_rock_green_spikes.png
+    - assets/json/levels.json

@@ -7,6 +7,8 @@ import 'package:valantica_world/highscore_manager.dart';
 import 'package:valantica_world/highscore_name_dialog.dart';
 import 'package:valantica_world/mobile_controls.dart';
 import 'package:valantica_world/start_screen.dart';
+import 'package:valantica_world/level_manager.dart';
+import 'package:valantica_world/level_transition_screen.dart';
 
 import 'space_game.dart';
 
@@ -33,6 +35,8 @@ void main() async {
     ),
   );
 
+  await LevelManager.loadLevels();
+
   runApp(const MyApp());
 }
 
@@ -48,12 +52,34 @@ class _MyAppState extends State<MyApp> {
   bool _gameStarted = false;
   bool _showingGameOver = false;
   bool _showingHighscoreDialog = false;
+  bool _showingLevelTransition = false;
   int? _finalScore;
 
   @override
   void initState() {
     super.initState();
-    _game = SpaceGame(onGameOver: _onGameOver);
+    _game = SpaceGame(
+      onGameOver: _onGameOver,
+      onLevelComplete: _onLevelComplete,
+    );
+  }
+
+  void _onLevelComplete() async {
+    if (LevelManager.hasNextLevel) {
+      LevelManager.nextLevel();
+      _game.isGameOver = true;
+      setState(() {
+        _showingLevelTransition = true;
+      });
+      await Future.delayed(const Duration(seconds: 2));
+      setState(() {
+        _showingLevelTransition = false;
+      });
+      _game.loadLevel();
+      _game.isGameOver = false;
+    } else {
+      _onGameOver();
+    }
   }
 
   void _onGameOver() async {
@@ -77,7 +103,11 @@ class _MyAppState extends State<MyApp> {
     if (!isTop10) {
       Future.delayed(const Duration(milliseconds: 100), () {
         setState(() {
-          _game = SpaceGame(onGameOver: _onGameOver);
+          LevelManager.reset();
+          _game = SpaceGame(
+            onGameOver: _onGameOver,
+            onLevelComplete: _onLevelComplete,
+          );
         });
       });
     }
@@ -96,7 +126,11 @@ class _MyAppState extends State<MyApp> {
     }
     setState(() {
       _showingHighscoreDialog = false;
-      _game = SpaceGame(onGameOver: _onGameOver);
+      LevelManager.reset();
+      _game = SpaceGame(
+        onGameOver: _onGameOver,
+        onLevelComplete: _onLevelComplete,
+      );
     });
   }
 
@@ -105,7 +139,11 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: _showingHighscoreDialog
+        body: _showingLevelTransition
+            ? LevelTransitionScreen(
+                levelNumber: LevelManager.currentLevelNumber,
+              )
+            : _showingHighscoreDialog
             ? HighscoreNameDialog(
                 score: _finalScore!,
                 onSubmit: _onHighscoreSubmit,
