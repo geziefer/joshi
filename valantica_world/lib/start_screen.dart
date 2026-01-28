@@ -22,7 +22,7 @@ class StartScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 40),
                 const Text(
-                  'SPACE RUNNER',
+                  'VALANTICA WORLD',
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,

@@ -1,14 +1,24 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:valantica_world/game_over_screen.dart';
 import 'package:valantica_world/highscore_manager.dart';
 import 'package:valantica_world/highscore_name_dialog.dart';
+import 'package:valantica_world/mobile_controls.dart';
 import 'package:valantica_world/start_screen.dart';
 
 import 'space_game.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
   await Firebase.initializeApp(
     options: const FirebaseOptions(
@@ -36,6 +46,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late SpaceGame _game;
   bool _gameStarted = false;
+  bool _showingGameOver = false;
   bool _showingHighscoreDialog = false;
   int? _finalScore;
 
@@ -49,9 +60,16 @@ class _MyAppState extends State<MyApp> {
     final score = _game.score;
     _finalScore = score;
 
+    setState(() {
+      _showingGameOver = true;
+    });
+
+    await Future.delayed(const Duration(seconds: 3));
+
     final isTop10 = await HighscoreManager.isTop10Score(score);
 
     setState(() {
+      _showingGameOver = false;
       _gameStarted = false;
       _showingHighscoreDialog = isTop10;
     });
@@ -67,7 +85,14 @@ class _MyAppState extends State<MyApp> {
 
   void _onHighscoreSubmit(String username) async {
     if (_finalScore != null) {
-      await HighscoreManager.addScore(username, _finalScore!);
+      try {
+        debugPrint('Saving highscore: $username - $_finalScore');
+        await HighscoreManager.addScore(username, _finalScore!);
+        debugPrint('Highscore saved successfully');
+      } catch (e, stackTrace) {
+        debugPrint('Error saving highscore: $e');
+        debugPrint('Stack trace: $stackTrace');
+      }
     }
     setState(() {
       _showingHighscoreDialog = false;
@@ -85,8 +110,22 @@ class _MyAppState extends State<MyApp> {
                 score: _finalScore!,
                 onSubmit: _onHighscoreSubmit,
               )
+            : _showingGameOver
+            ? GameOverScreen(score: _finalScore!)
             : _gameStarted
-            ? GameWidget(game: _game)
+            ? Stack(
+                children: [
+                  GameWidget(game: _game),
+                  MobileControls(
+                    onUpPressed: () => _game.setUpPressed(true),
+                    onUpReleased: () => _game.setUpPressed(false),
+                    onDownPressed: () => _game.setDownPressed(true),
+                    onDownReleased: () => _game.setDownPressed(false),
+                    onShootPressed: () => _game.startShooting(),
+                    onShootReleased: () => _game.stopShooting(),
+                  ),
+                ],
+              )
             : StartScreen(
                 onStart: () {
                   setState(() {

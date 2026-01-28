@@ -89,7 +89,7 @@ class SpaceGame extends FlameGame
       final lifeIcon = SpriteComponent(
         sprite: shipSprite,
         size: Vector2.all(64),
-        position: Vector2(40 + i * 80.0, size.y - 60),
+        position: Vector2(size.x - 40 - i * 80.0, 60),
         anchor: Anchor.center,
       );
       lifeIcons.add(lifeIcon);
@@ -171,7 +171,7 @@ class SpaceGame extends FlameGame
         final lifeIcon = SpriteComponent(
           sprite: shipSprite,
           size: Vector2.all(64),
-          position: Vector2(40 + i * 80.0, size.y - 60),
+          position: Vector2(size.x - 40 - i * 80.0, 60),
           anchor: Anchor.center,
         );
         lifeIcons.add(lifeIcon);
@@ -203,6 +203,11 @@ class SpaceGame extends FlameGame
     downPressed = keysPressed.contains(LogicalKeyboardKey.arrowDown);
     return KeyEventResult.handled;
   }
+
+  void setUpPressed(bool pressed) => upPressed = pressed;
+  void setDownPressed(bool pressed) => downPressed = pressed;
+  void startShooting() => ship.startShooting();
+  void stopShooting() => ship.stopShooting();
 
   bool _isDragging = false;
 

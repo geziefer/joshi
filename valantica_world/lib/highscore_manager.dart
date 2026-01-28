@@ -30,7 +30,7 @@ class HighscoreManager {
       final prefs = await SharedPreferences.getInstance();
       final scores = prefs.getStringList(_key) ?? [];
       final validScores = <HighscoreEntry>[];
-      
+
       for (final s in scores) {
         if (s.isNotEmpty && s != 'undefined') {
           try {
@@ -40,11 +40,14 @@ class HighscoreManager {
           }
         }
       }
-      
+
       if (validScores.length != scores.length) {
-        await prefs.setStringList(_key, validScores.map((s) => s.toJson()).toList());
+        await prefs.setStringList(
+          _key,
+          validScores.map((s) => s.toJson()).toList(),
+        );
       }
-      
+
       return validScores;
     } catch (e) {
       return [];
@@ -93,50 +96,19 @@ class HighscoreManager {
   }
 
   static Future<void> addScore(String username, int score) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final scores = await getHighscores();
-      scores.add(HighscoreEntry(username, score));
-      scores.sort((a, b) => b.score.compareTo(a.score));
-      if (scores.length > 10) scores.removeRange(10, scores.length);
+    // Direkt in Firebase speichern
+    await _database.child('space_highscores').push().set({
+      'username': username,
+      'score': score,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    });
 
-      await prefs.setStringList(_key, scores.map((s) => s.toJson()).toList());
-      await _syncTop10ToFirebase();
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  static Future<void> _syncTop10ToFirebase() async {
-    try {
-      final snapshot = await _database.child('space_highscores').get();
-      final allScores = <HighscoreEntry>[];
-      
-      if (snapshot.exists) {
-        final data = snapshot.value as Map<dynamic, dynamic>;
-        allScores.addAll(
-          data.values.map((e) => HighscoreEntry.fromMap(Map<String, dynamic>.from(e))),
-        );
-      }
-      
-      final localScores = await getHighscores();
-      allScores.addAll(localScores);
-      allScores.sort((a, b) => b.score.compareTo(a.score));
-      final top10 = allScores.take(10).toList();
-      
-      // Alte Einträge löschen
-      await _database.child('space_highscores').remove();
-      
-      // Nur Top 10 speichern
-      for (final entry in top10) {
-        await _database.child('space_highscores').push().set({
-          'username': entry.username,
-          'score': entry.score,
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-        });
-      }
-    } catch (e) {
-      // Error syncing to Firebase
-    }
+    // Auch lokal speichern
+    final prefs = await SharedPreferences.getInstance();
+    final scores = await getHighscores();
+    scores.add(HighscoreEntry(username, score));
+    scores.sort((a, b) => b.score.compareTo(a.score));
+    if (scores.length > 10) scores.removeRange(10, scores.length);
+    await prefs.setStringList(_key, scores.map((s) => s.toJson()).toList());
   }
 }
