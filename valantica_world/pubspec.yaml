@@ -31,9 +31,36 @@ flutter:
     - assets/images/ships/ship_128.png
     - assets/images/ships/ship_192.png
     - assets/images/ships/ship_256.png
-    - assets/images/backgrounds/parallax_nebula_1024x512.png
-    - assets/images/backgrounds/parallax_stars_far_1024x512.png
-    - assets/images/backgrounds/parallax_stars_near_1024x512.png
+    - assets/images/backgrounds/level_01_blue_nebula_parallax_nebula_1024x512.png
+    - assets/images/backgrounds/level_01_blue_nebula_parallax_stars_far_1024x512.png
+    - assets/images/backgrounds/level_01_blue_nebula_parallax_stars_near_1024x512.png
+    - assets/images/backgrounds/level_02_purple_mist_parallax_nebula_1024x512.png
+    - assets/images/backgrounds/level_02_purple_mist_parallax_stars_far_1024x512.png
+    - assets/images/backgrounds/level_02_purple_mist_parallax_stars_near_1024x512.png
+    - assets/images/backgrounds/level_03_teal_clouds_parallax_nebula_1024x512.png
+    - assets/images/backgrounds/level_03_teal_clouds_parallax_stars_far_1024x512.png
+    - assets/images/backgrounds/level_03_teal_clouds_parallax_stars_near_1024x512.png
+    - assets/images/backgrounds/level_04_red_dust_parallax_nebula_1024x512.png
+    - assets/images/backgrounds/level_04_red_dust_parallax_stars_far_1024x512.png
+    - assets/images/backgrounds/level_04_red_dust_parallax_stars_near_1024x512.png
+    - assets/images/backgrounds/level_05_green_aurora_parallax_nebula_1024x512.png
+    - assets/images/backgrounds/level_05_green_aurora_parallax_stars_far_1024x512.png
+    - assets/images/backgrounds/level_05_green_aurora_parallax_stars_near_1024x512.png
+    - assets/images/backgrounds/level_06_ice_blue_parallax_nebula_1024x512.png
+    - assets/images/backgrounds/level_06_ice_blue_parallax_stars_far_1024x512.png
+    - assets/images/backgrounds/level_06_ice_blue_parallax_stars_near_1024x512.png
+    - assets/images/backgrounds/level_07_golden_void_parallax_nebula_1024x512.png
+    - assets/images/backgrounds/level_07_golden_void_parallax_stars_far_1024x512.png
+    - assets/images/backgrounds/level_07_golden_void_parallax_stars_near_1024x512.png
+    - assets/images/backgrounds/level_08_magenta_waves_parallax_nebula_1024x512.png
+    - assets/images/backgrounds/level_08_magenta_waves_parallax_stars_far_1024x512.png
+    - assets/images/backgrounds/level_08_magenta_waves_parallax_stars_near_1024x512.png
+    - assets/images/backgrounds/level_09_deep_space_parallax_nebula_1024x512.png
+    - assets/images/backgrounds/level_09_deep_space_parallax_stars_far_1024x512.png
+    - assets/images/backgrounds/level_09_deep_space_parallax_stars_near_1024x512.png
+    - assets/images/backgrounds/level_10_storm_blue_parallax_nebula_1024x512.png
+    - assets/images/backgrounds/level_10_storm_blue_parallax_stars_far_1024x512.png
+    - assets/images/backgrounds/level_10_storm_blue_parallax_stars_near_1024x512.png
     - assets/images/targets/tier1_barrel_small.png
     - assets/images/targets/tier1_beacon_orange.png
     - assets/images/targets/tier1_energy_orb_blue.png

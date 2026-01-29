@@ -83,6 +83,11 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _onGameOver() async {
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+    );
+
     final score = _game.score;
     _finalScore = score;
 
@@ -165,7 +170,10 @@ class _MyAppState extends State<MyApp> {
                 ],
               )
             : StartScreen(
-                onStart: () {
+                onStart: () async {
+                  await SystemChrome.setEnabledSystemUIMode(
+                    SystemUiMode.immersiveSticky,
+                  );
                   setState(() {
                     _gameStarted = true;
                   });

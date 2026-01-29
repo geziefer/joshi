@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'player_ship.dart';
 import 'asteroid.dart';
 import 'level_manager.dart';
+import 'laser.dart';
 
 class SpaceGame extends FlameGame
     with KeyboardEvents, TapCallbacks, DragCallbacks, HasCollisionDetection {
@@ -15,9 +16,9 @@ class SpaceGame extends FlameGame
   final VoidCallback onLevelComplete;
 
   // --- Tuning ---
-  final double shipX = 110;
-  final double shipSize = 96; // try 96..128
-  final double shipSpeed = 420; // px/s
+  double shipX = 110;
+  double shipSize = 96;
+  final double shipSpeed = 420;
   final double screenMargin = 40;
 
   // World speed for scrolling objects
@@ -28,8 +29,9 @@ class SpaceGame extends FlameGame
   // Keyboard state
   bool upPressed = false;
   bool downPressed = false;
+  bool _spacePressed = false;
 
-  late final ParallaxComponent parallax;
+  late ParallaxComponent parallax;
   late final PlayerShip ship;
   late final AsteroidSpawner spawner;
   bool _isLoaded = false;
@@ -43,16 +45,7 @@ class SpaceGame extends FlameGame
   @override
   Future<void> onLoad() async {
     // Parallax background (seamless tiles)
-    parallax = await loadParallaxComponent(
-      [
-        ParallaxImageData('backgrounds/parallax_nebula_1024x512.png'),
-        ParallaxImageData('backgrounds/parallax_stars_far_1024x512.png'),
-        ParallaxImageData('backgrounds/parallax_stars_near_1024x512.png'),
-      ],
-      baseVelocity: Vector2(30, 0),
-      velocityMultiplierDelta: Vector2(1.6, 1.0),
-      repeat: ImageRepeat.repeat,
-    );
+    await _loadParallaxForLevel(LevelManager.currentLevelNumber);
     add(parallax);
 
     // Ship
@@ -107,9 +100,13 @@ class SpaceGame extends FlameGame
     for (int i = 0; i < 3; i++) {
       final lifeIcon = SpriteComponent(
         sprite: shipSprite,
-        size: Vector2.all(64),
-        position: Vector2(size.x - 40 - i * 80.0, 60),
+        size: Vector2.all(80),
+        position: Vector2(size.x - 50 - i * 95.0, 70),
         anchor: Anchor.center,
+      );
+      lifeIcon.paint.colorFilter = const ColorFilter.mode(
+        Color(0xFFFF6666),
+        BlendMode.modulate,
       );
       lifeIcons.add(lifeIcon);
       add(lifeIcon);
@@ -163,6 +160,35 @@ class SpaceGame extends FlameGame
     scoreText.text = 'Score: $score';
   }
 
+  void activatePowerUp() {
+    ship.activatePowerUp();
+  }
+
+  void addLife() {
+    if (lives < 3) {
+      final shipSprite = ship.sprite;
+      if (shipSprite != null) {
+        final lifeIcon = SpriteComponent(
+          sprite: shipSprite,
+          size: Vector2.all(80),
+          position: Vector2(size.x - 50 - lives * 95.0, 70),
+          anchor: Anchor.center,
+        );
+        lifeIcon.paint.colorFilter = const ColorFilter.mode(
+          Color(0xFFFF6666),
+          BlendMode.modulate,
+        );
+        lifeIcons.add(lifeIcon);
+        add(lifeIcon);
+        lives++;
+      }
+    }
+  }
+
+  void onPowerUpExpired() {
+    spawner.resetPowerUpTimer();
+  }
+
   void gameOver() {
     isGameOver = true;
     onGameOver();
@@ -174,20 +200,91 @@ class SpaceGame extends FlameGame
     onLevelComplete();
   }
 
-  void loadLevel() {
+  Future<void> _loadParallaxForLevel(int level) async {
+    final levelStr = level.toString().padLeft(2, '0');
+    String theme;
+
+    switch (level) {
+      case 1:
+        theme = 'blue_nebula';
+        break;
+      case 2:
+        theme = 'purple_mist';
+        break;
+      case 3:
+        theme = 'teal_clouds';
+        break;
+      case 4:
+        theme = 'red_dust';
+        break;
+      case 5:
+        theme = 'green_aurora';
+        break;
+      case 6:
+        theme = 'ice_blue';
+        break;
+      case 7:
+        theme = 'golden_void';
+        break;
+      case 8:
+        theme = 'magenta_waves';
+        break;
+      case 9:
+        theme = 'deep_space';
+        break;
+      case 10:
+        theme = 'storm_blue';
+        break;
+      default:
+        theme = 'blue_nebula';
+    }
+
+    final prefix = 'level_${levelStr}_$theme';
+    parallax = await loadParallaxComponent(
+      [
+        ParallaxImageData('backgrounds/${prefix}_parallax_nebula_1024x512.png'),
+        ParallaxImageData(
+          'backgrounds/${prefix}_parallax_stars_far_1024x512.png',
+        ),
+        ParallaxImageData(
+          'backgrounds/${prefix}_parallax_stars_near_1024x512.png',
+        ),
+      ],
+      baseVelocity: Vector2(30, 0),
+      velocityMultiplierDelta: Vector2(1.6, 1.0),
+      repeat: ImageRepeat.repeat,
+    );
+  }
+
+  void loadLevel() async {
     worldSpeed = LevelManager.currentLevel.worldSpeed;
     _levelTimer = 0;
     levelText.text = 'Level ${LevelManager.currentLevelNumber}';
-    
+
     // Remove all asteroids
     children.whereType<Asteroid>().toList().forEach(
       (a) => a.removeFromParent(),
     );
-    
-    // Reset ship position
+
+    // Remove all lasers
+    children.whereType<Laser>().toList().forEach((l) => l.removeFromParent());
+
+    // Reset ship
+    if (!ship.isMounted) {
+      add(ship);
+    }
     ship.position = Vector2(shipX, size.y / 2);
     ship.isInvincible = false;
     ship.opacity = 1.0;
+
+    // Reset power-up timers
+    spawner.resetAllPowerUpTimers();
+
+    // Update background for new level
+    remove(parallax);
+    await _loadParallaxForLevel(LevelManager.currentLevelNumber);
+    parallax.priority = -1;
+    add(parallax);
   }
 
   void restart() {
@@ -216,9 +313,13 @@ class SpaceGame extends FlameGame
       for (int i = 0; i < 3; i++) {
         final lifeIcon = SpriteComponent(
           sprite: shipSprite,
-          size: Vector2.all(64),
-          position: Vector2(size.x - 40 - i * 80.0, 60),
+          size: Vector2.all(80),
+          position: Vector2(size.x - 50 - i * 95.0, 70),
           anchor: Anchor.center,
+        );
+        lifeIcon.paint.colorFilter = const ColorFilter.mode(
+          Color(0xFFFF6666),
+          BlendMode.modulate,
         );
         lifeIcons.add(lifeIcon);
         add(lifeIcon);
@@ -235,6 +336,16 @@ class SpaceGame extends FlameGame
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
     if (_isLoaded) {
+      final isMobile = size.x < 600;
+      if (isMobile) {
+        shipX = size.x * 0.15;
+        shipSize = 64;
+        ship.size = Vector2.all(shipSize);
+      } else {
+        shipX = 110;
+        shipSize = 96;
+        ship.size = Vector2.all(shipSize);
+      }
       ship.updateBounds(size);
       ship.position.x = shipX;
     }
@@ -247,6 +358,15 @@ class SpaceGame extends FlameGame
   ) {
     upPressed = keysPressed.contains(LogicalKeyboardKey.arrowUp);
     downPressed = keysPressed.contains(LogicalKeyboardKey.arrowDown);
+    
+    final spacePressed = keysPressed.contains(LogicalKeyboardKey.space);
+    if (spacePressed && !_spacePressed) {
+      startShooting();
+    } else if (!spacePressed && _spacePressed) {
+      stopShooting();
+    }
+    _spacePressed = spacePressed;
+    
     return KeyEventResult.handled;
   }
 
@@ -255,7 +375,7 @@ class SpaceGame extends FlameGame
   void startShooting() {
     if (!isGameOver) ship.startShooting();
   }
-  
+
   void stopShooting() => ship.stopShooting();
 
   bool _isDragging = false;

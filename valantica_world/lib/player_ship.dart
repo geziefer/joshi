@@ -18,6 +18,8 @@ class PlayerShip extends SpriteComponent
   final double _shootDelay = 0.25;
   bool isInvincible = false;
   double _invincibleTimer = 0;
+  bool _powerUpActive = false;
+  double _powerUpTimer = 0;
 
   PlayerShip({
     required Sprite sprite,
@@ -37,7 +39,8 @@ class PlayerShip extends SpriteComponent
     super.update(dt);
     if (_shooting) {
       _shootTimer += dt;
-      if (_shootTimer >= _shootDelay) {
+      final delay = _powerUpActive ? 0.08 : _shootDelay;
+      if (_shootTimer >= delay) {
         _shootTimer = 0;
         _fireLaser();
       }
@@ -51,6 +54,14 @@ class PlayerShip extends SpriteComponent
         opacity = 1.0;
       } else {
         opacity = 0.5 + 0.5 * ((_invincibleTimer * 10) % 1);
+      }
+    }
+
+    if (_powerUpActive) {
+      _powerUpTimer += dt;
+      if (_powerUpTimer >= 5.0) {
+        _powerUpActive = false;
+        _powerUpTimer = 0;
       }
     }
   }
@@ -82,8 +93,23 @@ class PlayerShip extends SpriteComponent
   }
 
   void _fireLaser() {
-    final laser = Laser(position: position.clone() + Vector2(size.x / 2, 0));
+    final laserSize = _powerUpActive ? Vector2(30, 8) : Vector2(20, 4);
+    final laser = Laser(
+      position: position.clone() + Vector2(size.x / 2, 0),
+      laserSize: laserSize,
+    );
     game.add(laser);
+  }
+
+  void activatePowerUp() {
+    _powerUpActive = true;
+    _powerUpTimer = 0;
+    if (!_shooting) {
+      startShooting();
+    }
+    Future.delayed(const Duration(seconds: 5), () {
+      game.onPowerUpExpired();
+    });
   }
 
   void explode() {

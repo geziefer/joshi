@@ -4,36 +4,235 @@
       "id": 1,
       "name": "Level 1",
       "duration": 30,
-      "worldSpeed": 260,
+      "worldSpeed": 250,
       "spawnRate": 0.4,
       "asteroids": [
         "tier1_rock_small.png",
         "tier1_thruster_nozzle.png"
-      ]
+      ],
+      "powerups": []
     },
     {
       "id": 2,
       "name": "Level 2",
       "duration": 45,
-      "worldSpeed": 320,
+      "worldSpeed": 300,
       "spawnRate": 0.35,
       "asteroids": [
         "tier1_rock_small.png",
         "tier1_thruster_nozzle.png",
         "tier2_rock_cracked_lava.png"
-      ]
+      ],
+      "powerups": []
     },
     {
       "id": 3,
       "name": "Level 3",
       "duration": 60,
-      "worldSpeed": 400,
+      "worldSpeed": 350,
       "spawnRate": 0.3,
       "asteroids": [
         "tier1_rock_small.png",
         "tier1_thruster_nozzle.png",
         "tier2_rock_cracked_lava.png",
         "tier4_rock_green_spikes.png"
+      ],
+      "powerups": [
+        {
+          "sprite": "tier1_energy_orb_blue.png",
+          "type": "rapidfire",
+          "health": 3,
+          "spawnInterval": [20, 30]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Level 4",
+      "duration": 100,
+      "worldSpeed": 400,
+      "spawnRate": 0.28,
+      "asteroids": [
+        "tier1_rock_small.png",
+        "tier1_thruster_nozzle.png",
+        "tier2_rock_cracked_lava.png",
+        "tier4_rock_green_spikes.png"
+      ],
+      "powerups": [
+        {
+          "sprite": "tier1_energy_orb_blue.png",
+          "type": "rapidfire",
+          "health": 3,
+          "spawnInterval": [20, 30]
+        },
+        {
+          "sprite": "tier2_crystal_blue.png",
+          "type": "extralife",
+          "health": 5,
+          "spawnInterval": [30, 45]
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Level 5",
+      "duration": 100,
+      "worldSpeed": 450,
+      "spawnRate": 0.28,
+      "asteroids": [
+        "tier1_rock_small.png",
+        "tier1_thruster_nozzle.png",
+        "tier2_rock_cracked_lava.png",
+        "tier4_rock_green_spikes.png"
+      ],
+      "powerups": [
+        {
+          "sprite": "tier1_energy_orb_blue.png",
+          "type": "rapidfire",
+          "health": 3,
+          "spawnInterval": [20, 30]
+        },
+        {
+          "sprite": "tier2_crystal_blue.png",
+          "type": "extralife",
+          "health": 5,
+          "spawnInterval": [30, 45]
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Level 6",
+      "duration": 100,
+      "worldSpeed": 475,
+      "spawnRate": 0.28,
+      "asteroids": [
+        "tier1_rock_small.png",
+        "tier1_thruster_nozzle.png",
+        "tier2_rock_cracked_lava.png",
+        "tier4_rock_green_spikes.png"
+      ],
+      "powerups": [
+        {
+          "sprite": "tier1_energy_orb_blue.png",
+          "type": "rapidfire",
+          "health": 3,
+          "spawnInterval": [20, 30]
+        },
+        {
+          "sprite": "tier2_crystal_blue.png",
+          "type": "extralife",
+          "health": 5,
+          "spawnInterval": [30, 45]
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Level 7",
+      "duration": 100,
+      "worldSpeed": 500,
+      "spawnRate": 0.28,
+      "asteroids": [
+        "tier1_rock_small.png",
+        "tier1_thruster_nozzle.png",
+        "tier2_rock_cracked_lava.png",
+        "tier4_rock_green_spikes.png"
+      ],
+      "powerups": [
+        {
+          "sprite": "tier1_energy_orb_blue.png",
+          "type": "rapidfire",
+          "health": 3,
+          "spawnInterval": [20, 30]
+        },
+        {
+          "sprite": "tier2_crystal_blue.png",
+          "type": "extralife",
+          "health": 5,
+          "spawnInterval": [30, 45]
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Level 8",
+      "duration": 100,
+      "worldSpeed": 525,
+      "spawnRate": 0.28,
+      "asteroids": [
+        "tier1_rock_small.png",
+        "tier1_thruster_nozzle.png",
+        "tier2_rock_cracked_lava.png",
+        "tier4_rock_green_spikes.png"
+      ],
+      "powerups": [
+        {
+          "sprite": "tier1_energy_orb_blue.png",
+          "type": "rapidfire",
+          "health": 3,
+          "spawnInterval": [20, 30]
+        },
+        {
+          "sprite": "tier2_crystal_blue.png",
+          "type": "extralife",
+          "health": 5,
+          "spawnInterval": [30, 45]
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Level 9",
+      "duration": 100,
+      "worldSpeed": 550,
+      "spawnRate": 0.28,
+      "asteroids": [
+        "tier1_rock_small.png",
+        "tier1_thruster_nozzle.png",
+        "tier2_rock_cracked_lava.png",
+        "tier4_rock_green_spikes.png"
+      ],
+      "powerups": [
+        {
+          "sprite": "tier1_energy_orb_blue.png",
+          "type": "rapidfire",
+          "health": 3,
+          "spawnInterval": [20, 30]
+        },
+        {
+          "sprite": "tier2_crystal_blue.png",
+          "type": "extralife",
+          "health": 5,
+          "spawnInterval": [30, 45]
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Level 10",
+      "duration": 100,
+      "worldSpeed": 575,
+      "spawnRate": 0.28,
+      "asteroids": [
+        "tier1_rock_small.png",
+        "tier1_thruster_nozzle.png",
+        "tier2_rock_cracked_lava.png",
+        "tier4_rock_green_spikes.png"
+      ],
+      "powerups": [
+        {
+          "sprite": "tier1_energy_orb_blue.png",
+          "type": "rapidfire",
+          "health": 3,
+          "spawnInterval": [20, 30]
+        },
+        {
+          "sprite": "tier2_crystal_blue.png",
+          "type": "extralife",
+          "health": 5,
+          "spawnInterval": [30, 45]
+        }
       ]
     }
   ]

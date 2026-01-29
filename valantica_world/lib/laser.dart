@@ -8,8 +8,8 @@ class Laser extends PositionComponent
     with HasGameReference<SpaceGame>, CollisionCallbacks {
   final double speed = 600;
 
-  Laser({required Vector2 position})
-    : super(position: position, size: Vector2(20, 4), anchor: Anchor.center);
+  Laser({required Vector2 position, Vector2? laserSize})
+    : super(position: position, size: laserSize ?? Vector2(20, 4), anchor: Anchor.center);
 
   @override
   Future<void> onLoad() async {
