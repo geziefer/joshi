@@ -62,7 +62,7 @@ class PowerUpConfig {
 
 class LevelManager {
   static List<LevelConfig> _levels = [];
-  static int _currentLevelIndex = 9;
+  static int _currentLevelIndex = 0;
 
   static Future<void> loadLevels() async {
     final jsonString = await rootBundle.loadString('assets/json/levels.json');

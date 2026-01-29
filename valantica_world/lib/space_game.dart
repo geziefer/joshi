@@ -48,6 +48,13 @@ class SpaceGame extends FlameGame
     await _loadParallaxForLevel(LevelManager.currentLevelNumber);
     add(parallax);
 
+    // Adjust for mobile portrait only
+    final isPortrait = size.y > size.x;
+    if (isPortrait && size.x < 600) {
+      shipX = size.x * 0.15;
+      shipSize = 65;
+    }
+
     // Ship
     final shipSprite = await loadSprite('ships/ship_256.png');
     ship =
@@ -281,9 +288,10 @@ class SpaceGame extends FlameGame
     spawner.resetAllPowerUpTimers();
 
     // Update background for new level
-    remove(parallax);
     await _loadParallaxForLevel(LevelManager.currentLevelNumber);
     parallax.priority = -1;
+    final oldParallax = children.whereType<ParallaxComponent>().firstOrNull;
+    if (oldParallax != null) remove(oldParallax);
     add(parallax);
   }
 
@@ -336,10 +344,16 @@ class SpaceGame extends FlameGame
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
     if (_isLoaded) {
-      final isMobile = size.x < 600;
-      if (isMobile) {
+      final isPortrait = size.y > size.x;
+      final isLandscape = size.x > size.y;
+      
+      if (isPortrait && size.x < 600) {
         shipX = size.x * 0.15;
-        shipSize = 64;
+        shipSize = 65;
+        ship.size = Vector2.all(shipSize);
+      } else if (isLandscape && size.y < 500) {
+        shipX = size.x * 0.1;
+        shipSize = 40;
         ship.size = Vector2.all(shipSize);
       } else {
         shipX = 110;
@@ -373,7 +387,7 @@ class SpaceGame extends FlameGame
   void setUpPressed(bool pressed) => upPressed = pressed;
   void setDownPressed(bool pressed) => downPressed = pressed;
   void startShooting() {
-    if (!isGameOver) ship.startShooting();
+    if (!isGameOver) ship.startShooting(holding: true);
   }
 
   void stopShooting() => ship.stopShooting();
@@ -386,7 +400,7 @@ class SpaceGame extends FlameGame
     if (ship.containsPoint(event.localPosition)) {
       _isDragging = true;
     } else {
-      ship.startShooting();
+      ship.startShooting(holding: false);
     }
   }
 
@@ -411,7 +425,7 @@ class SpaceGame extends FlameGame
     if (ship.containsPoint(event.localPosition)) {
       _isDragging = true;
     } else {
-      ship.startShooting();
+      ship.startShooting(holding: false);
     }
   }
 

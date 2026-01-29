@@ -78,10 +78,13 @@ class AsteroidSpawner extends Component with HasGameReference<SpaceGame> {
 
   List<double> get _lanes {
     final h = game.size.y;
-    final top = 140.0;
-    final bottom = h - 80.0;
-    final step = (bottom - top) / 4;
-    return List.generate(5, (i) => top + step * i);
+    final isLandscape = game.size.x > game.size.y;
+    final isMobileLandscape = isLandscape && game.size.y < 500;
+    final top = isLandscape ? 100.0 : 140.0;
+    final bottom = isLandscape ? h - 100.0 : h - 160.0;
+    final laneCount = isMobileLandscape ? 3 : 5;
+    final step = (bottom - top) / (laneCount - 1);
+    return List.generate(laneCount, (i) => top + step * i);
   }
 
   @override
@@ -90,7 +93,8 @@ class AsteroidSpawner extends Component with HasGameReference<SpaceGame> {
     _timer += dt;
     if (_timer >= _nextSpawn) {
       _timer = 0;
-      _nextSpawn = LevelManager.currentLevel.spawnRate;
+      final isLandscape = game.size.x > game.size.y;
+      _nextSpawn = isLandscape ? LevelManager.currentLevel.spawnRate * 1.3 : LevelManager.currentLevel.spawnRate;
       _spawnAsteroid();
     }
 
@@ -162,7 +166,8 @@ class AsteroidSpawner extends Component with HasGameReference<SpaceGame> {
     }
 
     final isMobile = game.size.x < 600;
-    final size = isMobile ? baseSize * 0.7 : baseSize;
+    final isLandscape = game.size.x > game.size.y;
+    final size = isMobile ? baseSize * 0.65 : (isLandscape && game.size.y < 500 ? baseSize * 0.4 : baseSize);
 
     final Vector2 spawnPos;
     final Vector2 velocity;

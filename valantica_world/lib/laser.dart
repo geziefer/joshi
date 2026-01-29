@@ -29,7 +29,7 @@ class Laser extends PositionComponent
   void update(double dt) {
     super.update(dt);
     position.x += speed * dt;
-    if (position.x > game.size.x + 50) removeFromParent();
+    if (position.x > game.size.x * 0.75) removeFromParent();
   }
 
   @override

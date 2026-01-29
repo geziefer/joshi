@@ -66,16 +66,16 @@ class _MyAppState extends State<MyApp> {
 
   void _onLevelComplete() async {
     if (LevelManager.hasNextLevel) {
-      LevelManager.nextLevel();
       _game.isGameOver = true;
+      LevelManager.nextLevel();
       setState(() {
         _showingLevelTransition = true;
       });
+      _game.loadLevel();
       await Future.delayed(const Duration(seconds: 2));
       setState(() {
         _showingLevelTransition = false;
       });
-      _game.loadLevel();
       _game.isGameOver = false;
     } else {
       _onGameOver();
@@ -83,11 +83,6 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _onGameOver() async {
-    await SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.manual,
-      overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
-    );
-
     final score = _game.score;
     _finalScore = score;
 
@@ -99,21 +94,24 @@ class _MyAppState extends State<MyApp> {
 
     final isTop10 = await HighscoreManager.isTop10Score(score);
 
-    setState(() {
-      _showingGameOver = false;
-      _gameStarted = false;
-      _showingHighscoreDialog = isTop10;
-    });
-
     if (!isTop10) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        setState(() {
-          LevelManager.reset();
-          _game = SpaceGame(
-            onGameOver: _onGameOver,
-            onLevelComplete: _onLevelComplete,
-          );
-        });
+      await SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+      );
+      setState(() {
+        _showingGameOver = false;
+        _gameStarted = false;
+        LevelManager.reset();
+        _game = SpaceGame(
+          onGameOver: _onGameOver,
+          onLevelComplete: _onLevelComplete,
+        );
+      });
+    } else {
+      setState(() {
+        _showingGameOver = false;
+        _showingHighscoreDialog = true;
       });
     }
   }
@@ -129,8 +127,13 @@ class _MyAppState extends State<MyApp> {
         debugPrint('Stack trace: $stackTrace');
       }
     }
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+    );
     setState(() {
       _showingHighscoreDialog = false;
+      _gameStarted = false;
       LevelManager.reset();
       _game = SpaceGame(
         onGameOver: _onGameOver,
@@ -171,6 +174,12 @@ class _MyAppState extends State<MyApp> {
               )
             : StartScreen(
                 onStart: () async {
+                  await SystemChrome.setPreferredOrientations([
+                    DeviceOrientation.portraitUp,
+                    DeviceOrientation.portraitDown,
+                    DeviceOrientation.landscapeLeft,
+                    DeviceOrientation.landscapeRight,
+                  ]);
                   await SystemChrome.setEnabledSystemUIMode(
                     SystemUiMode.immersiveSticky,
                   );

@@ -14,8 +14,10 @@ class PlayerShip extends SpriteComponent
   double _minY = 0;
   double _maxY = 0;
   bool _shooting = false;
+  bool _holding = false;
   double _shootTimer = 0;
-  final double _shootDelay = 0.25;
+  final double _shootDelayHold = 0.25;
+  final double _shootDelayTap = 0.20;
   bool isInvincible = false;
   double _invincibleTimer = 0;
   bool _powerUpActive = false;
@@ -39,10 +41,12 @@ class PlayerShip extends SpriteComponent
     super.update(dt);
     if (_shooting) {
       _shootTimer += dt;
-      final delay = _powerUpActive ? 0.08 : _shootDelay;
+      final delay = _powerUpActive ? 0.08 : (_holding ? _shootDelayHold : _shootDelayTap);
       if (_shootTimer >= delay) {
         _shootTimer = 0;
-        _fireLaser();
+        if (game.children.whereType<Laser>().length < 15) {
+          _fireLaser();
+        }
       }
     }
     
@@ -83,17 +87,28 @@ class PlayerShip extends SpriteComponent
     position.y = y.clamp(_minY, _maxY);
   }
 
-  void startShooting() {
+  void startShooting({bool holding = false}) {
     _shooting = true;
-    _shootTimer = _shootDelay;
+    _holding = holding;
+    _shootTimer = holding ? _shootDelayHold : _shootDelayTap;
   }
 
   void stopShooting() {
     _shooting = false;
+    _holding = false;
   }
 
   void _fireLaser() {
-    final laserSize = _powerUpActive ? Vector2(30, 8) : Vector2(20, 4);
+    final isLandscape = game.size.x > game.size.y;
+    final isMobileLandscape = isLandscape && game.size.y < 500;
+    
+    Vector2 laserSize;
+    if (_powerUpActive) {
+      laserSize = isMobileLandscape ? Vector2(20, 5) : Vector2(30, 8);
+    } else {
+      laserSize = isMobileLandscape ? Vector2(14, 3) : Vector2(20, 4);
+    }
+    
     final laser = Laser(
       position: position.clone() + Vector2(size.x / 2, 0),
       laserSize: laserSize,

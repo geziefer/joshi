@@ -23,6 +23,7 @@ class StartScreen extends StatelessWidget {
                 const SizedBox(height: 40),
                 const Text(
                   'VALANTICA WORLD',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
