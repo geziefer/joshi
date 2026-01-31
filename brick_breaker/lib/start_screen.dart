@@ -55,6 +55,12 @@ class StartScreen extends StatelessWidget {
                       StreamBuilder<List<HighscoreEntry>>(
                         stream: HighscoreManager.watchGlobalHighscores(),
                         builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return Text('Fehler: ${snapshot.error}');
+                          }
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          }
                           final scores = snapshot.data ?? [];
                           if (scores.isEmpty) {
                             return const Text('Noch keine Highscores');

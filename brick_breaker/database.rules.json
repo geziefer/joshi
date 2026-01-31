@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "brick_breaker_highscores": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}

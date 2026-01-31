@@ -10,6 +10,6 @@ class PlayArea extends RectangleComponent with HasGameReference<BrickBreaker> {
   Future<void> onLoad() async {
     super.onLoad();
     size = Vector2(game.width, game.height);
-    paint = Paint()..color = const Color.fromARGB(255, 254, 253, 253);
+    paint = Paint()..color = Colors.white;
   }
 }

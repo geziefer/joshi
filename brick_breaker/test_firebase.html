@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Firebase Test</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+</head>
+<body>
+  <h1>Firebase Database Test</h1>
+  <button onclick="testRead()">Test Read</button>
+  <button onclick="testWrite()">Test Write</button>
+  <pre id="output"></pre>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDu91gsy60LFajTQOIOcYAvaVjLJGJWmik",
+      authDomain: "brick-breaker-32771.firebaseapp.com",
+      databaseURL: "https://brick-breaker-32771-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "brick-breaker-32771",
+      storageBucket: "brick-breaker-32771.firebasestorage.app",
+      messagingSenderId: "223791541084",
+      appId: "1:223791541084:web:b7ff83daf05e4cf4a62f99"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function log(msg) {
+      document.getElementById('output').textContent += msg + '\n';
+    }
+
+    async function testRead() {
+      try {
+        log('Reading from brick_breaker_highscores...');
+        const snapshot = await db.ref('brick_breaker_highscores').once('value');
+        log('Success! Data: ' + JSON.stringify(snapshot.val(), null, 2));
+      } catch (error) {
+        log('Error: ' + error.message);
+      }
+    }
+
+    async function testWrite() {
+      try {
+        log('Writing test data...');
+        await db.ref('brick_breaker_highscores/test').set({
+          username: 'TestUser',
+          score: 100,
+          timestamp: Date.now()
+        });
+        log('Write successful!');
+        testRead();
+      } catch (error) {
+        log('Error: ' + error.message);
+      }
+    }
+  </script>
+</body>
+</html>
